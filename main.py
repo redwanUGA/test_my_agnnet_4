@@ -16,39 +16,27 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Initial setup on device: {device}")
 
-    # A list of dictionaries, where each dictionary defines an experiment.
-    # Models that work well with the unified training script are included.
-    experiments = [
-        # --- BaselineGCN Experiments ---
-        {'model': 'BaselineGCN', 'dataset': 'OGB-Arxiv', 'epochs': 20, 'lr': 0.01, 'hidden_channels': 64,
-         'dropout': 0.5, 'weight_decay': 5e-4, 'num_layers': 2},
-        {'model': 'BaselineGCN', 'dataset': 'TGB-Wiki', 'epochs': 20, 'lr': 0.01, 'hidden_channels': 64, 'dropout': 0.5,
-         'weight_decay': 5e-4, 'num_layers': 2},
-        {'model': 'BaselineGCN', 'dataset': 'MOOC', 'epochs': 20, 'lr': 0.01, 'hidden_channels': 64, 'dropout': 0.5,
-         'weight_decay': 5e-4, 'num_layers': 2},
-        # {'model': 'BaselineGCN', 'dataset': 'Reddit', 'epochs': 10, 'lr': 0.01, 'hidden_channels': 128, 'dropout': 0.5,
-        # 'weight_decay': 5e-4, 'num_layers': 2},
+    # Dynamically build experiments so all models train on all datasets.
+    datasets = ['OGB-Arxiv', 'TGB-Wiki', 'MOOC', 'Reddit']
+    model_defaults = {
+        'BaselineGCN': {'epochs': 20, 'lr': 0.01, 'hidden_channels': 64,
+                        'dropout': 0.5, 'weight_decay': 5e-4, 'num_layers': 2},
+        'GraphSAGE':   {'epochs': 20, 'lr': 0.01, 'hidden_channels': 64,
+                        'dropout': 0.5, 'weight_decay': 5e-4, 'num_layers': 2},
+        'TGAT':        {'epochs': 5,  'lr': 0.01, 'hidden_channels': 64,
+                        'dropout': 0.3, 'weight_decay': 5e-4, 'num_layers': 2},
+        'TGN':         {'epochs': 5,  'lr': 0.01, 'hidden_channels': 64,
+                        'dropout': 0.3, 'weight_decay': 5e-4, 'num_layers': 2},
+        'AGNNet':      {'epochs': 5,  'lr': 0.01, 'hidden_channels': 64,
+                        'dropout': 0.3, 'weight_decay': 5e-4, 'num_layers': 3}
+    }
 
-        # --- GraphSAGE Experiments ---
-        {'model': 'GraphSAGE', 'dataset': 'OGB-Arxiv', 'epochs': 20, 'lr': 0.01, 'hidden_channels': 64, 'dropout': 0.5,
-         'weight_decay': 5e-4, 'num_layers': 2},
-        {'model': 'GraphSAGE', 'dataset': 'TGB-Wiki', 'epochs': 20, 'lr': 0.01, 'hidden_channels': 64, 'dropout': 0.5,
-         'weight_decay': 5e-4, 'num_layers': 2},
-        {'model': 'GraphSAGE', 'dataset': 'MOOC', 'epochs': 20, 'lr': 0.01, 'hidden_channels': 64, 'dropout': 0.5,
-         'weight_decay': 5e-4, 'num_layers': 2},
-        # {'model': 'GraphSAGE', 'dataset': 'Reddit', 'epochs': 10, 'lr': 0.01, 'hidden_channels': 128, 'dropout': 0.5,
-        # 'weight_decay': 5e-4, 'num_layers': 2},
-
-        # --- AGNNet Experiments ---
-        {'model': 'AGNNet', 'dataset': 'OGB-Arxiv', 'epochs': 5, 'lr': 0.01, 'hidden_channels': 64, 'dropout': 0.3,
-         'weight_decay': 5e-4, 'num_layers': 3},
-        {'model': 'AGNNet', 'dataset': 'TGB-Wiki', 'epochs': 5, 'lr': 0.01, 'hidden_channels': 64, 'dropout': 0.3,
-         'weight_decay': 5e-4, 'num_layers': 3},
-        {'model': 'AGNNet', 'dataset': 'MOOC', 'epochs': 5, 'lr': 0.01, 'hidden_channels': 64, 'dropout': 0.3,
-         'weight_decay': 5e-4, 'num_layers': 3} #,
-        # {'model': 'AGNNet', 'dataset': 'Reddit', 'epochs': 10, 'lr': 0.01, 'hidden_channels': 128, 'dropout': 0.3,
-        # 'weight_decay': 5e-4, 'num_layers': 3},
-    ]
+    experiments = []
+    for model_name, defaults in model_defaults.items():
+        for dataset in datasets:
+            exp = {'model': model_name, 'dataset': dataset}
+            exp.update(defaults)
+            experiments.append(exp)
 
     for config in experiments:
         print("\n" + "=" * 60)
@@ -73,6 +61,11 @@ def main():
             model = models.BaselineGCN(feat_dim, args.hidden_channels, num_classes, args.dropout)
         elif model_name == 'graphsage':
             model = models.GraphSAGE(feat_dim, args.hidden_channels, num_classes, args.num_layers, args.dropout)
+        elif model_name == 'tgat':
+            model = models.TGAT(feat_dim, args.hidden_channels, num_classes,
+                                 num_layers=args.num_layers, dropout=args.dropout)
+        elif model_name == 'tgn':
+            model = models.TGN(data.num_nodes, args.hidden_channels, 1, num_classes)
         elif model_name == 'agnnet':
             model = models.AGNNet(feat_dim, args.hidden_channels, num_classes, dropout=args.dropout)
         else:

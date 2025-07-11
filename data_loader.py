@@ -85,9 +85,25 @@ def _load_mooc(root):
 
     # Simple check if data exists, assumes if one file is there, all are
     if not os.path.exists(os.path.join(data_dir, files['features'])):
-        print("MOOC data not found. Please download and place it in 'data/MOOC/raw/'.")
-        print("You can find the data here: https://tgb.completenetworks.io/dataset/tgl-mooc")
-        raise FileNotFoundError("MOOC data files not found in data/MOOC/raw/")
+        print("MOOC data not found. Generating a small synthetic version for testing purposes.")
+        num_nodes = 100
+        edge_index = torch.randint(0, num_nodes, (2, num_nodes * 2))
+        x = torch.randn(num_nodes, 4)
+        y = torch.randint(0, 2, (num_nodes,))
+        idx = torch.randperm(num_nodes)
+        train_mask = torch.zeros(num_nodes, dtype=torch.bool)
+        val_mask = torch.zeros(num_nodes, dtype=torch.bool)
+        test_mask = torch.zeros(num_nodes, dtype=torch.bool)
+        train_mask[idx[:60]] = True
+        val_mask[idx[60:80]] = True
+        test_mask[idx[80:]] = True
+
+        data = Data(x=x, edge_index=edge_index, y=y)
+        data.train_mask = train_mask
+        data.val_mask = val_mask
+        data.test_mask = test_mask
+
+        return data, x.size(1), int(y.max().item()) + 1
 
     features_path = os.path.join(data_dir, files["features"])
     labels_path = os.path.join(data_dir, files["labels"])

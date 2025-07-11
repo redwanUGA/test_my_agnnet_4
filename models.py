@@ -89,7 +89,9 @@ class TGN(nn.Module):
     def forward(self, data):
         src, dst = data.edge_index
         timestamps = getattr(data, 'edge_time', torch.zeros(src.size(0), device=src.device))
-        edge_attr = getattr(data, 'edge_attr', torch.zeros((src.size(0), 1), device=src.device))
+        edge_attr = getattr(data, 'edge_attr', None)
+        if edge_attr is None:
+            edge_attr = torch.zeros((src.size(0), 1), device=src.device)
 
         src_mem = self.memory(src)
         dst_mem = self.memory(dst)
@@ -229,6 +231,8 @@ class AGNNet(nn.Module):
             mapping = torch.full((num_nodes,), -1, dtype=torch.long, device=x.device)
             mapping[sub_nodes] = torch.arange(sub_nodes.size(0), device=x.device)
             mapped_edge_index = mapping[sub_edge_index]
+            valid = (mapped_edge_index[0] >= 0) & (mapped_edge_index[1] >= 0)
+            mapped_edge_index = mapped_edge_index[:, valid]
 
             self.cached_sub_nodes = sub_nodes
             self.cached_sub_edge_index = sub_edge_index

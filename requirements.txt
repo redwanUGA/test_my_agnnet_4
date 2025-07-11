@@ -1,0 +1,12 @@
+# Core dependencies
+numpy
+pandas
+requests
+tqdm
+
+# Machine learning frameworks
+torch
+torch-geometric
+ogb
+
+gdown

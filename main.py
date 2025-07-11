@@ -80,6 +80,20 @@ def main():
         train_loader, val_loader, test_loader = None, None, None
 
         if is_sampled:
+            # Ensure that required PyG sampling dependencies are available
+            try:
+                import torch_sparse  # noqa: F401
+            except ImportError:
+                try:
+                    import pyg_lib  # noqa: F401
+                except ImportError:
+                    msg = (
+                        "NeighborLoader requires either 'torch_sparse' or 'pyg_lib'. "
+                        "Install one of these packages to run the Reddit experiment."
+                    )
+                    print(msg)
+                    raise ImportError(msg)
+
             print("Using NeighborSampler for mini-batch training.")
             train_loader = NeighborLoader(data, num_neighbors=[-1] * args.num_layers, batch_size=1024,
                                           input_nodes=data.train_mask, shuffle=True, num_workers=4)

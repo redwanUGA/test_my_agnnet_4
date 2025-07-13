@@ -150,7 +150,6 @@ def main():
             is_sampled,
             device,
             args,
-            getattr(args, 'accum_steps', 1),
         )
 
         # --- Cleanup ---

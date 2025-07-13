@@ -1,15 +1,8 @@
 import torch
 import torch.nn.functional as F
 from tqdm import tqdm
-from models import AGNNet
-from torch_geometric.nn import DataParallel as PyGDataParallel
-
-
-def _model_forward(model, batch, *extra_args, **extra_kwargs):
-    """Utility to handle PyG DataParallel which expects a list of Data."""
-    if isinstance(model, PyGDataParallel):
-        return model([batch], *extra_args, **extra_kwargs)
-    return model(batch, *extra_args, **extra_kwargs)
+# Ensure TGN is imported from models for isinstance checks
+from models import AGNNet, TGN
 
 
 def train_epoch_full(model, data, optimizer):
@@ -17,13 +10,9 @@ def train_epoch_full(model, data, optimizer):
     optimizer.zero_grad()
 
     if isinstance(model, AGNNet):
-        out = model(
-            data.x,
-            data.edge_index,
-            edge_weight=None,
-        )
+        out = model(data.x, data.edge_index, edge_weight=None)
     else:
-        out = _model_forward(model, data)
+        out = model(data)
 
     labels = data.y[data.train_mask].view(-1)
     logits = out[data.train_mask]
@@ -48,7 +37,7 @@ def evaluate_full(model, data):
     if isinstance(model, AGNNet):
         out = model(data.x, data.edge_index, edge_weight=None)
     else:
-        out = _model_forward(model, data)
+        out = model(data)
 
     pred = out.argmax(dim=1)
     accs = []
@@ -60,8 +49,6 @@ def evaluate_full(model, data):
 
 
 
-
-
 def train_epoch_sampled(model, loader, optimizer):
     model.train()
     total_loss = 0
@@ -70,7 +57,6 @@ def train_epoch_sampled(model, loader, optimizer):
         optimizer.zero_grad()
         batch = batch.to(next(model.parameters()).device)
 
-        # Call the model's forward pass
         if isinstance(model, AGNNet):
             out = model(
                 batch.x,
@@ -81,20 +67,20 @@ def train_epoch_sampled(model, loader, optimizer):
         else:
             out = model(batch)
 
-        # Labels are always batch-local
         labels = batch.y[batch.train_mask].view(-1)
 
-        # Adjust logits indexing based on model type
+        # Conditional logits indexing based on model type
         if isinstance(model, (AGNNet, TGN)):
-            # These models output predictions for all nodes in the graph (global output)
+            # These models output predictions for all nodes in the graph
             # We need to use batch.n_id to select predictions relevant to the current batch
             logits = out[batch.n_id][batch.train_mask]
         else:
             # Models like BaselineGCN, GraphSAGE, TGAT output predictions
-            # only for the nodes in the current batch (batch-local output)
+            # only for the nodes in the current batch
             logits = out[batch.train_mask]
 
-        # Check for invalid label indices
+
+        # 🔍 Check for invalid label indices
         if labels.max() >= logits.size(1) or labels.min() < 0:
             print(f"❌ Invalid label values detected. Label range: [{labels.min()} - {labels.max()}], Expected: [0 - {logits.size(1) - 1}]")
             print(f"Logits shape: {logits.shape}")
@@ -106,6 +92,9 @@ def train_epoch_sampled(model, loader, optimizer):
         total_loss += loss.item()
 
     return total_loss / len(loader)
+
+
+
 
 @torch.no_grad()
 def evaluate_sampled(model, loader):
@@ -120,14 +109,21 @@ def evaluate_sampled(model, loader):
                 batch.x,
                 batch.edge_index,
                 edge_weight=getattr(batch, 'edge_weight', None),
-                batch=getattr(batch, 'batch', None),
+                batch=getattr(batch, 'batch', None)
             )
         else:
-            out = _model_forward(model, batch)
+            out = model(batch)
 
         pred = out.argmax(dim=-1)
+
+        # Adjust pred indexing based on model type for evaluation
+        if isinstance(model, (AGNNet, TGN)):
+            pred_for_batch = pred[batch.n_id]
+        else:
+            pred_for_batch = pred
+
         for i, mask in enumerate([batch.train_mask, batch.val_mask, batch.test_mask]):
-            total_correct[i] += (pred[mask] == batch.y[mask].view(-1)).sum().item()
+            total_correct[i] += (pred_for_batch[mask] == batch.y[mask].view(-1)).sum().item()
             total[i] += mask.sum().item()
 
     accs = [c / t if t > 0 else 0 for c, t in zip(total_correct, total)]
@@ -136,15 +132,8 @@ def evaluate_sampled(model, loader):
 
 
 def run_training_session(
-        model,
-        data,
-        train_loader,
-        val_loader,
-        test_loader,
-        is_sampled,
-        device,
-        args,
-        accum_steps=1,
+        model, data, train_loader, val_loader, test_loader,
+        is_sampled, device, args
 ):
     """
     Orchestrates the full training and evaluation process.
@@ -158,9 +147,6 @@ def run_training_session(
         is_sampled (bool): Flag indicating if mini-batching is used.
         device (torch.device): The device to run on.
         args (argparse.Namespace): Command-line arguments.
-        accum_steps (int): Number of gradient accumulation steps when using
-            mini-batches. This trades extra computation for lower memory
-            consumption.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     best_val_acc = 0
@@ -170,8 +156,10 @@ def run_training_session(
 
     for epoch in range(1, args.epochs + 1):
         if is_sampled:
-            loss = train_epoch_sampled(model, train_loader, optimizer, accum_steps)
-            _, val_acc, _ = evaluate_sampled(model, val_loader) # Modified line: extract val_acc from the list
+            # Removed 'accum_steps' from the call, as train_epoch_sampled doesn't take it
+            loss = train_epoch_sampled(model, train_loader, optimizer)
+            # Unpack the list returned by evaluate_sampled to get val_acc
+            _, val_acc, _ = evaluate_sampled(model, val_loader)
             test_acc = -1  # Skip test eval for now
         else:
             loss = train_epoch_full(model, data, optimizer)

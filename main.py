@@ -73,6 +73,17 @@ def main():
             continue
 
         model = model.to(device)
+
+        # If multiple GPUs are available, optionally parallelize the model
+        if torch.cuda.device_count() > 1:
+            try:
+                from torch_geometric.nn import DataParallel as PyGDataParallel
+                model = PyGDataParallel(model)
+                print(f"Model parallelized over {torch.cuda.device_count()} GPUs using PyG DataParallel")
+            except Exception:
+                # Fall back to vanilla DataParallel if PyG's version is unavailable
+                model = torch.nn.DataParallel(model)
+                print(f"Model parallelized over {torch.cuda.device_count()} GPUs using torch DataParallel")
         print(f"\nModel Initialized: {args.model}")
 
         # --- Dataloader Setup ---
@@ -95,19 +106,47 @@ def main():
                     raise ImportError(msg)
 
             print("Using NeighborSampler for mini-batch training.")
-            train_loader = NeighborLoader(data, num_neighbors=[-1] * args.num_layers, batch_size=1024,
-                                          input_nodes=data.train_mask, shuffle=True, num_workers=4)
-            val_loader = NeighborLoader(data, num_neighbors=[-1] * args.num_layers, batch_size=1024,
-                                        input_nodes=data.val_mask, num_workers=4)
-            test_loader = NeighborLoader(data, num_neighbors=[-1] * args.num_layers, batch_size=1024,
-                                         input_nodes=data.test_mask, num_workers=4)
+            # Limit the number of neighbors to avoid huge subgraphs on Reddit
+            neighbor_sizes = [15] * args.num_layers
+            batch_size = 512
+            args.accum_steps = 2  # accumulate gradients to mimic a larger batch
+
+            train_loader = NeighborLoader(
+                data,
+                num_neighbors=neighbor_sizes,
+                batch_size=batch_size,
+                input_nodes=data.train_mask,
+                shuffle=True,
+                num_workers=4,
+            )
+            val_loader = NeighborLoader(
+                data,
+                num_neighbors=neighbor_sizes,
+                batch_size=batch_size,
+                input_nodes=data.val_mask,
+                num_workers=4,
+            )
+            test_loader = NeighborLoader(
+                data,
+                num_neighbors=neighbor_sizes,
+                batch_size=batch_size,
+                input_nodes=data.test_mask,
+                num_workers=4,
+            )
         else:
             train_loader = val_loader = test_loader = data
 
         # --- Training ---
         train.run_training_session(
-            model, data, train_loader, val_loader, test_loader,
-            is_sampled, device, args
+            model,
+            data,
+            train_loader,
+            val_loader,
+            test_loader,
+            is_sampled,
+            device,
+            args,
+            getattr(args, 'accum_steps', 1),
         )
 
         # --- Cleanup ---

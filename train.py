@@ -62,28 +62,39 @@ def evaluate_full(model, data):
 
 
 
-def train_epoch_sampled(model, loader, optimizer, accum_steps=1):
+def train_epoch_sampled(model, loader, optimizer):
     model.train()
     total_loss = 0
 
-    optimizer.zero_grad()
-    for i, batch in enumerate(loader):
+    for batch in loader:
+        optimizer.zero_grad()
         batch = batch.to(next(model.parameters()).device)
 
+        # Call the model's forward pass
         if isinstance(model, AGNNet):
             out = model(
                 batch.x,
                 batch.edge_index,
                 edge_weight=getattr(batch, 'edge_weight', None),
-                batch=getattr(batch, 'batch', None),
+                batch=getattr(batch, 'batch', None)
             )
         else:
-            out = _model_forward(model, batch)
+            out = model(batch)
 
+        # Labels are always batch-local
         labels = batch.y[batch.train_mask].view(-1)
-        logits = out[batch.n_id][batch.train_mask]
 
-        # 🔍 Check for invalid label indices
+        # Adjust logits indexing based on model type
+        if isinstance(model, (AGNNet, TGN)):
+            # These models output predictions for all nodes in the graph (global output)
+            # We need to use batch.n_id to select predictions relevant to the current batch
+            logits = out[batch.n_id][batch.train_mask]
+        else:
+            # Models like BaselineGCN, GraphSAGE, TGAT output predictions
+            # only for the nodes in the current batch (batch-local output)
+            logits = out[batch.train_mask]
+
+        # Check for invalid label indices
         if labels.max() >= logits.size(1) or labels.min() < 0:
             print(f"❌ Invalid label values detected. Label range: [{labels.min()} - {labels.max()}], Expected: [0 - {logits.size(1) - 1}]")
             print(f"Logits shape: {logits.shape}")
@@ -91,23 +102,10 @@ def train_epoch_sampled(model, loader, optimizer, accum_steps=1):
 
         loss = F.cross_entropy(logits, labels)
         loss.backward()
-
-        # Gradient accumulation to reduce memory usage
-        if (i + 1) % accum_steps == 0:
-            optimizer.step()
-            optimizer.zero_grad()
-
+        optimizer.step()
         total_loss += loss.item()
 
-    # Step for leftovers
-    if len(loader) % accum_steps != 0:
-        optimizer.step()
-        optimizer.zero_grad()
-
     return total_loss / len(loader)
-
-
-
 
 @torch.no_grad()
 def evaluate_sampled(model, loader):

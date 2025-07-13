@@ -75,15 +75,19 @@ def main():
         model = model.to(device)
 
         # If multiple GPUs are available, optionally parallelize the model
-        if torch.cuda.device_count() > 1:
+        if torch.cuda.device_count() > 1 and model_name != 'agnnet':
             try:
                 from torch_geometric.nn import DataParallel as PyGDataParallel
                 model = PyGDataParallel(model)
-                print(f"Model parallelized over {torch.cuda.device_count()} GPUs using PyG DataParallel")
+                print(
+                    f"Model parallelized over {torch.cuda.device_count()} GPUs using PyG DataParallel"
+                )
             except Exception:
                 # Fall back to vanilla DataParallel if PyG's version is unavailable
                 model = torch.nn.DataParallel(model)
-                print(f"Model parallelized over {torch.cuda.device_count()} GPUs using torch DataParallel")
+                print(
+                    f"Model parallelized over {torch.cuda.device_count()} GPUs using torch DataParallel"
+                )
         print(f"\nModel Initialized: {args.model}")
 
         # --- Dataloader Setup ---

@@ -50,12 +50,12 @@ def evaluate_full(model, data):
 
 
 
-def train_epoch_sampled(model, loader, optimizer):
+def train_epoch_sampled(model, loader, optimizer, accum_steps=1):
     model.train()
     total_loss = 0
 
-    for batch in loader:
-        optimizer.zero_grad()
+    optimizer.zero_grad()
+    for i, batch in enumerate(loader):
         batch = batch.to(next(model.parameters()).device)
 
         if isinstance(model, AGNNet):
@@ -79,8 +79,18 @@ def train_epoch_sampled(model, loader, optimizer):
 
         loss = F.cross_entropy(logits, labels)
         loss.backward()
-        optimizer.step()
+
+        # Gradient accumulation to reduce memory usage
+        if (i + 1) % accum_steps == 0:
+            optimizer.step()
+            optimizer.zero_grad()
+
         total_loss += loss.item()
+
+    # Step for leftovers
+    if len(loader) % accum_steps != 0:
+        optimizer.step()
+        optimizer.zero_grad()
 
     return total_loss / len(loader)
 
@@ -116,8 +126,15 @@ def evaluate_sampled(model, loader):
 
 
 def run_training_session(
-        model, data, train_loader, val_loader, test_loader,
-        is_sampled, device, args
+        model,
+        data,
+        train_loader,
+        val_loader,
+        test_loader,
+        is_sampled,
+        device,
+        args,
+        accum_steps=1,
 ):
     """
     Orchestrates the full training and evaluation process.
@@ -131,6 +148,9 @@ def run_training_session(
         is_sampled (bool): Flag indicating if mini-batching is used.
         device (torch.device): The device to run on.
         args (argparse.Namespace): Command-line arguments.
+        accum_steps (int): Number of gradient accumulation steps when using
+            mini-batches. This trades extra computation for lower memory
+            consumption.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     best_val_acc = 0
@@ -140,7 +160,7 @@ def run_training_session(
 
     for epoch in range(1, args.epochs + 1):
         if is_sampled:
-            loss = train_epoch_sampled(model, train_loader, optimizer)
+            loss = train_epoch_sampled(model, train_loader, optimizer, accum_steps)
             val_acc = evaluate_sampled(model, val_loader)
             test_acc = -1  # Skip test eval for now
         else:

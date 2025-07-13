@@ -81,7 +81,7 @@ def train_epoch_sampled(model, loader, optimizer, accum_steps=1):
             out = _model_forward(model, batch)
 
         labels = batch.y[batch.train_mask].view(-1)
-        logits = out[batch.train_mask]
+        logits = out[batch.n_id][batch.train_mask]
 
         # 🔍 Check for invalid label indices
         if labels.max() >= logits.size(1) or labels.min() < 0:

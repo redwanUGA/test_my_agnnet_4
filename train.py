@@ -2,6 +2,14 @@ import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 from models import AGNNet
+from torch_geometric.nn import DataParallel as PyGDataParallel
+
+
+def _model_forward(model, batch, *extra_args, **extra_kwargs):
+    """Utility to handle PyG DataParallel which expects a list of Data."""
+    if isinstance(model, PyGDataParallel):
+        return model([batch], *extra_args, **extra_kwargs)
+    return model(batch, *extra_args, **extra_kwargs)
 
 
 def train_epoch_full(model, data, optimizer):
@@ -9,9 +17,13 @@ def train_epoch_full(model, data, optimizer):
     optimizer.zero_grad()
 
     if isinstance(model, AGNNet):
-        out = model(data.x, data.edge_index, edge_weight=None)
+        out = model(
+            data.x,
+            data.edge_index,
+            edge_weight=None,
+        )
     else:
-        out = model(data)
+        out = _model_forward(model, data)
 
     labels = data.y[data.train_mask].view(-1)
     logits = out[data.train_mask]
@@ -36,7 +48,7 @@ def evaluate_full(model, data):
     if isinstance(model, AGNNet):
         out = model(data.x, data.edge_index, edge_weight=None)
     else:
-        out = model(data)
+        out = _model_forward(model, data)
 
     pred = out.argmax(dim=1)
     accs = []
@@ -63,10 +75,10 @@ def train_epoch_sampled(model, loader, optimizer, accum_steps=1):
                 batch.x,
                 batch.edge_index,
                 edge_weight=getattr(batch, 'edge_weight', None),
-                batch=getattr(batch, 'batch', None)
+                batch=getattr(batch, 'batch', None),
             )
         else:
-            out = model(batch)
+            out = _model_forward(model, batch)
 
         labels = batch.y[batch.train_mask].view(-1)
         logits = out[batch.train_mask]
@@ -110,10 +122,10 @@ def evaluate_sampled(model, loader):
                 batch.x,
                 batch.edge_index,
                 edge_weight=getattr(batch, 'edge_weight', None),
-                batch=getattr(batch, 'batch', None)
+                batch=getattr(batch, 'batch', None),
             )
         else:
-            out = model(batch)
+            out = _model_forward(model, batch)
 
         pred = out.argmax(dim=-1)
         for i, mask in enumerate([batch.train_mask, batch.val_mask, batch.test_mask]):

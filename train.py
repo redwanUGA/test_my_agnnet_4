@@ -173,7 +173,7 @@ def run_training_session(
     for epoch in range(1, args.epochs + 1):
         if is_sampled:
             loss = train_epoch_sampled(model, train_loader, optimizer, accum_steps)
-            val_acc = evaluate_sampled(model, val_loader)
+            _, val_acc, _ = evaluate_sampled(model, val_loader) # Modified line: extract val_acc from the list
             test_acc = -1  # Skip test eval for now
         else:
             loss = train_epoch_full(model, data, optimizer)

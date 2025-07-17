@@ -6,7 +6,7 @@ This repository contains a small collection of scripts for experimenting with va
 - `data_loader.py` – Utilities for downloading and loading graph datasets. Supports **OGB-Arxiv**, **Reddit**, **TGB-Wiki**, and **MOOC**.
 - `models.py` – Implementation of baseline GCN and GraphSAGE models along with research prototypes such as `AGNNet`.
 - `train.py` – Reusable routines for full-batch and sampled mini-batch training.
-- `main.py` – Entry point that iterates through a set of experiment configurations.
+- `main.py` – Command line interface to run a single experiment.
 - `DOWNLOAD_INSTRUCTIONS.md` – Steps for obtaining large datasets from the provided Google Drive folders.
 
 ## Getting Started
@@ -16,13 +16,28 @@ This repository contains a small collection of scripts for experimenting with va
    ```
    PyTorch and PyTorch Geometric must be installed with versions that match your system and CUDA setup.
 2. Download the datasets following [DOWNLOAD_INSTRUCTIONS.md](DOWNLOAD_INSTRUCTIONS.md).
-3. Run the experiments:
+3. Run an experiment:
    ```bash
-   python main.py
+   python main.py --model BaselineGCN --dataset OGB-Arxiv --epochs 20
    ```
+   Additional hyperparameters such as learning rate, dropout and hidden size can
+   be supplied via command line flags (see `python main.py --help`). Defaults
+   for these optional values are printed as part of the configuration output.
 
-The default experiments will run a few epochs for each model/dataset pair and print accuracy statistics.
+### Valid command line values
+Models:
+`BaselineGCN`, `GraphSAGE`, `TGAT`, `TGN`, `AGNNet`
+
+Datasets:
+`OGB-Arxiv`, `Reddit`, `TGB-Wiki`, `MOOC`
+
+Default hyperparameters:
+- `lr`: `0.01`
+- `hidden-channels`: `64`
+- `dropout`: `0.5`
+- `weight-decay`: `5e-4`
+- `num-layers`: `2`
 
 ## Notes
 - The datasets are large and therefore not stored in this repository.
-- Modify the experiments listed in `main.py` to adjust hyperparameters or add new models.
+- Use the command line flags in `main.py` to adjust hyperparameters or integrate new models.

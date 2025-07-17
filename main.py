@@ -1,81 +1,83 @@
+import argparse
+import gc
 import torch
 from torch_geometric.loader import NeighborLoader
-import gc
 
 import data_loader
 import models
 import train
 
 
+def parse_args():
+    """Parse command line arguments for a single training run."""
+    parser = argparse.ArgumentParser(
+        description="Train a GNN model on a selected dataset")
+    parser.add_argument(
+        "--model",
+        required=True,
+        choices=["BaselineGCN", "GraphSAGE", "TGAT", "TGN", "AGNNet"],
+        help="Model architecture to use",
+    )
+    parser.add_argument(
+        "--dataset",
+        required=True,
+        choices=["OGB-Arxiv", "Reddit", "TGB-Wiki", "MOOC"],
+        help="Dataset to train on",
+    )
+    parser.add_argument(
+        "--epochs", type=int, required=True, help="Number of training epochs")
+    parser.add_argument("--lr", type=float, default=0.01, help="Learning rate")
+    parser.add_argument(
+        "--hidden-channels",
+        type=int,
+        default=64,
+        help="Hidden dimension size",
+    )
+    parser.add_argument(
+        "--dropout", type=float, default=0.5, help="Dropout probability")
+    parser.add_argument(
+        "--weight-decay", type=float, default=5e-4, help="Weight decay")
+    parser.add_argument(
+        "--num-layers", type=int, default=2, help="Number of GNN layers")
+    return parser.parse_args()
+
+
 def main():
-    """
-    Main function to run a series of predefined GNN experiments.
-    It iterates through a list of configurations, training each specified model
-    on each specified dataset.
-    """
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    """Run a single training experiment based on command line arguments."""
+    args = parse_args()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Initial setup on device: {device}")
+    print(f"Configuration: {args}")
 
-    # Dynamically build experiments so all models train on all datasets.
-    datasets = ['OGB-Arxiv', 'TGB-Wiki', 'MOOC', 'Reddit']
-    model_defaults = {
-        'BaselineGCN': {'epochs': 20, 'lr': 0.01, 'hidden_channels': 64,
-                        'dropout': 0.5, 'weight_decay': 5e-4, 'num_layers': 2},
-        'GraphSAGE':   {'epochs': 20, 'lr': 0.01, 'hidden_channels': 64,
-                        'dropout': 0.5, 'weight_decay': 5e-4, 'num_layers': 2},
-        'TGAT':        {'epochs': 5,  'lr': 0.01, 'hidden_channels': 64,
-                        'dropout': 0.3, 'weight_decay': 5e-4, 'num_layers': 2},
-        'TGN':         {'epochs': 5,  'lr': 0.01, 'hidden_channels': 64,
-                        'dropout': 0.3, 'weight_decay': 5e-4, 'num_layers': 2},
-        'AGNNet':      {'epochs': 5,  'lr': 0.01, 'hidden_channels': 64,
-                        'dropout': 0.3, 'weight_decay': 5e-4, 'num_layers': 3}
-    }
+    # --- Data Loading ---
+    data, feat_dim, num_classes = data_loader.load_dataset(name=args.dataset, root="data")
+    data = data.to(device)
 
-    experiments = []
-    for model_name, defaults in model_defaults.items():
-        for dataset in datasets:
-            exp = {'model': model_name, 'dataset': dataset}
-            exp.update(defaults)
-            experiments.append(exp)
+    # --- Model Initialization ---
+    model_name = args.model.lower()
+    if model_name == "baselinegcn":
+        model = models.BaselineGCN(feat_dim, args.hidden_channels, num_classes, args.dropout)
+    elif model_name == "graphsage":
+        model = models.GraphSAGE(feat_dim, args.hidden_channels, num_classes, args.num_layers, args.dropout)
+    elif model_name == "tgat":
+        model = models.TGAT(
+            feat_dim,
+            args.hidden_channels,
+            num_classes,
+            num_layers=args.num_layers,
+            dropout=args.dropout,
+        )
+    elif model_name == "tgn":
+        model = models.TGN(data.num_nodes, args.hidden_channels, 1, num_classes)
+    elif model_name == "agnnet":
+        model = models.AGNNet(feat_dim, args.hidden_channels, num_classes, dropout=args.dropout)
+    else:
+        raise ValueError(f"Model '{args.model}' not implemented")
 
-    for config in experiments:
-        print("\n" + "=" * 60)
-        print(f"STARTING EXPERIMENT: Model={config['model']}, Dataset={config['dataset']}")
-        print(f"Configuration: {config}")
-        print("=" * 60)
-
-        # Simple class to mimic argparse.Namespace for compatibility with the train function
-        class ConfigNamespace:
-            def __init__(self, adict):
-                self.__dict__.update(adict)
-
-        args = ConfigNamespace(config)
-
-        # --- Data Loading ---
-        data, feat_dim, num_classes = data_loader.load_dataset(name=args.dataset, root='data')
-        data = data.to(device)
-
-        # --- Model Initialization ---
-        model_name = args.model.lower()
-        if model_name == 'baselinegcn':
-            model = models.BaselineGCN(feat_dim, args.hidden_channels, num_classes, args.dropout)
-        elif model_name == 'graphsage':
-            model = models.GraphSAGE(feat_dim, args.hidden_channels, num_classes, args.num_layers, args.dropout)
-        elif model_name == 'tgat':
-            model = models.TGAT(feat_dim, args.hidden_channels, num_classes,
-                                 num_layers=args.num_layers, dropout=args.dropout)
-        elif model_name == 'tgn':
-            model = models.TGN(data.num_nodes, args.hidden_channels, 1, num_classes)
-        elif model_name == 'agnnet':
-            model = models.AGNNet(feat_dim, args.hidden_channels, num_classes, dropout=args.dropout)
-        else:
-            print(f"Warning: Model '{args.model}' not implemented in this script. Skipping.")
-            continue
-
-        model = model.to(device)
+    model = model.to(device)
 
         # If multiple GPUs are available, optionally parallelize the model
-        if torch.cuda.device_count() > 1 and model_name != 'agnnet':
+    if torch.cuda.device_count() > 1 and model_name != "agnnet":
             try:
                 from torch_geometric.nn import DataParallel as PyGDataParallel
                 model = PyGDataParallel(model)
@@ -88,80 +90,75 @@ def main():
                 print(
                     f"Model parallelized over {torch.cuda.device_count()} GPUs using torch DataParallel"
                 )
-        print(f"\nModel Initialized: {args.model}")
+    print(f"\nModel Initialized: {args.model}")
 
-        # --- Dataloader Setup ---
-        is_sampled = (args.dataset == 'Reddit')
-        train_loader, val_loader, test_loader = None, None, None
+    # --- Dataloader Setup ---
+    is_sampled = args.dataset == "Reddit"
+    train_loader = val_loader = test_loader = None
 
-        if is_sampled:
-            # Ensure that required PyG sampling dependencies are available
+    if is_sampled:
+        # Ensure that required PyG sampling dependencies are available
+        try:
+            import torch_sparse  # noqa: F401
+        except ImportError:
             try:
-                import torch_sparse  # noqa: F401
+                import pyg_lib  # noqa: F401
             except ImportError:
-                try:
-                    import pyg_lib  # noqa: F401
-                except ImportError:
-                    msg = (
-                        "NeighborLoader requires either 'torch_sparse' or 'pyg_lib'. "
-                        "Install one of these packages to run the Reddit experiment."
-                    )
-                    print(msg)
-                    raise ImportError(msg)
+                msg = (
+                    "NeighborLoader requires either 'torch_sparse' or 'pyg_lib'. "
+                    "Install one of these packages to run the Reddit experiment."
+                )
+                print(msg)
+                raise ImportError(msg)
 
-            print("Using NeighborSampler for mini-batch training.")
-            # Limit the number of neighbors to avoid huge subgraphs on Reddit
-            neighbor_sizes = [15] * args.num_layers
-            batch_size = 512
-            args.accum_steps = 2  # accumulate gradients to mimic a larger batch
+        print("Using NeighborSampler for mini-batch training.")
+        neighbor_sizes = [15] * args.num_layers
+        batch_size = 512
+        args.accum_steps = 2  # accumulate gradients to mimic a larger batch
 
-            train_loader = NeighborLoader(
-                data,
-                num_neighbors=neighbor_sizes,
-                batch_size=batch_size,
-                input_nodes=data.train_mask,
-                shuffle=True,
-                num_workers=4,
-            )
-            val_loader = NeighborLoader(
-                data,
-                num_neighbors=neighbor_sizes,
-                batch_size=batch_size,
-                input_nodes=data.val_mask,
-                num_workers=4,
-            )
-            test_loader = NeighborLoader(
-                data,
-                num_neighbors=neighbor_sizes,
-                batch_size=batch_size,
-                input_nodes=data.test_mask,
-                num_workers=4,
-            )
-        else:
-            train_loader = val_loader = test_loader = data
-
-        # --- Training ---
-        train.run_training_session(
-            model,
+        train_loader = NeighborLoader(
             data,
-            train_loader,
-            val_loader,
-            test_loader,
-            is_sampled,
-            device,
-            args,
+            num_neighbors=neighbor_sizes,
+            batch_size=batch_size,
+            input_nodes=data.train_mask,
+            shuffle=True,
+            num_workers=4,
         )
+        val_loader = NeighborLoader(
+            data,
+            num_neighbors=neighbor_sizes,
+            batch_size=batch_size,
+            input_nodes=data.val_mask,
+            num_workers=4,
+        )
+        test_loader = NeighborLoader(
+            data,
+            num_neighbors=neighbor_sizes,
+            batch_size=batch_size,
+            input_nodes=data.test_mask,
+            num_workers=4,
+        )
+    else:
+        train_loader = val_loader = test_loader = data
 
-        # --- Cleanup ---
-        print("Cleaning up memory for next run...")
-        del model, data, train_loader, val_loader, test_loader, args
-        gc.collect()
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+    # --- Training ---
+    train.run_training_session(
+        model,
+        data,
+        train_loader,
+        val_loader,
+        test_loader,
+        is_sampled,
+        device,
+        args,
+    )
 
-    print("\n" + "=" * 60)
-    print("ALL EXPERIMENTS COMPLETED")
-    print("=" * 60)
+    # --- Cleanup ---
+    print("Cleaning up memory...")
+    del model, data, train_loader, val_loader, test_loader
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
 
 if __name__ == '__main__':

@@ -10,3 +10,4 @@ torch-geometric
 ogb
 
 gdown
+PyQt5

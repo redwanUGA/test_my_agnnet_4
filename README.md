@@ -41,3 +41,11 @@ Default hyperparameters:
 ## Notes
 - The datasets are large and therefore not stored in this repository.
 - Use the command line flags in `main.py` to adjust hyperparameters or integrate new models.
+
+## PyQt Interface
+A small GUI is available in `gui.py` for launching experiments without using the command line.
+Run it with:
+```bash
+python gui.py
+```
+The interface provides buttons to download the datasets and fields to configure a model, dataset and hyperparameters. Progress from downloads and training is displayed in verbose panels.

@@ -16,6 +16,7 @@ This repository contains a small collection of scripts for experimenting with va
    ```
    PyTorch and PyTorch Geometric must be installed with versions that match your system and CUDA setup.
 2. Download the datasets from the provided Google Drive folder by following [DOWNLOAD_INSTRUCTIONS.md](DOWNLOAD_INSTRUCTIONS.md).
+   The archives will create a `simple_data/` directory containing `.pt` files.
 3. Run an experiment:
    ```bash
    python main.py --model BaselineGCN --dataset OGB-Arxiv --epochs 20
@@ -40,6 +41,8 @@ Default hyperparameters:
 
 ## Notes
 - The datasets are large and therefore not stored in this repository.
+- After downloading they reside in `simple_data/` and are loaded directly
+  from those `.pt` files.
 - Use the command line flags in `main.py` to adjust hyperparameters or integrate new models.
 
 ## Web Interface

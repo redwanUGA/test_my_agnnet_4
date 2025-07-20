@@ -67,7 +67,7 @@ def run_experiment(cfg: ExperimentConfig):
 
     sys.stdout = Stream()
     try:
-        data, feat_dim, num_classes = data_loader.load_dataset(cfg.dataset, root='data')
+        data, feat_dim, num_classes = data_loader.load_dataset(cfg.dataset, root='simple_data')
         data = data.to(device)
         name = cfg.model.lower()
         if name == 'baselinegcn':

@@ -86,47 +86,52 @@ def main():
 
     if is_sampled:
         # Ensure that required PyG sampling dependencies are available
+        deps_available = False
         try:
             import torch_sparse  # noqa: F401
+            deps_available = True
         except ImportError:
             try:
                 import pyg_lib  # noqa: F401
+                deps_available = True
             except ImportError:
                 msg = (
                     "NeighborLoader requires either 'torch_sparse' or 'pyg_lib'. "
-                    "Install one of these packages to run the Reddit experiment."
+                    "Falling back to full-batch training for Reddit."
                 )
                 print(msg)
-                raise ImportError(msg)
+                is_sampled = False
 
-        print("Using NeighborSampler for mini-batch training.")
-        neighbor_sizes = [15] * args.num_layers
-        batch_size = 512
-        args.accum_steps = 2  # accumulate gradients to mimic a larger batch
+        if deps_available:
+            print("Using NeighborSampler for mini-batch training.")
+            neighbor_sizes = [15] * args.num_layers
+            batch_size = 512
+            args.accum_steps = 2  # accumulate gradients to mimic a larger batch
 
-        train_loader = NeighborLoader(
-            data,
-            num_neighbors=neighbor_sizes,
-            batch_size=batch_size,
-            input_nodes=data.train_mask,
-            shuffle=True,
-            num_workers=4,
-        )
-        val_loader = NeighborLoader(
-            data,
-            num_neighbors=neighbor_sizes,
-            batch_size=batch_size,
-            input_nodes=data.val_mask,
-            num_workers=4,
-        )
-        test_loader = NeighborLoader(
-            data,
-            num_neighbors=neighbor_sizes,
-            batch_size=batch_size,
-            input_nodes=data.test_mask,
-            num_workers=4,
-        )
-    else:
+            train_loader = NeighborLoader(
+                data,
+                num_neighbors=neighbor_sizes,
+                batch_size=batch_size,
+                input_nodes=data.train_mask,
+                shuffle=True,
+                num_workers=4,
+            )
+            val_loader = NeighborLoader(
+                data,
+                num_neighbors=neighbor_sizes,
+                batch_size=batch_size,
+                input_nodes=data.val_mask,
+                num_workers=4,
+            )
+            test_loader = NeighborLoader(
+                data,
+                num_neighbors=neighbor_sizes,
+                batch_size=batch_size,
+                input_nodes=data.test_mask,
+                num_workers=4,
+            )
+
+    if not is_sampled:
         train_loader = val_loader = test_loader = data
 
     # --- Training ---

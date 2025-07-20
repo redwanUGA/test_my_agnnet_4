@@ -35,6 +35,8 @@ def _load_pt_dataset(pt_path):
     # tuple. Handle these cases by extracting the first element or common keys.
     if isinstance(obj, (list, tuple)):
         data = obj[0]
+        if isinstance(data, dict) and not isinstance(data, Data):
+            data = Data(**data)
     elif isinstance(obj, dict) and not isinstance(obj, Data):
         # try common keys used when saving PyG objects
         for key in ["data", "graph", "dataset"]:
@@ -61,6 +63,16 @@ def _load_pt_dataset(pt_path):
         data.train_mask[idx[:train_end]] = True
         data.val_mask[idx[train_end:val_end]] = True
         data.test_mask[idx[val_end:]] = True
+    else:
+        # flatten multi-dimensional masks by logical OR across columns
+        for mask_name in ['train_mask', 'val_mask', 'test_mask']:
+            mask = getattr(data, mask_name)
+            if mask is not None and mask.dim() > 1:
+                setattr(data, mask_name, mask.any(dim=1))
+
+    # ensure label tensor is 1D
+    if isinstance(data.y, torch.Tensor) and data.y.dim() > 1 and data.y.size(1) == 1:
+        data.y = data.y.view(-1)
 
     # ADDED THIS LINE TO FIX THE BUG
     if isinstance(data, dict):

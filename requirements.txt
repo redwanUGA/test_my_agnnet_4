@@ -10,6 +10,4 @@ torch-geometric
 ogb
 
 gdown
-Flask
-
-gunicorn
+PyQt5

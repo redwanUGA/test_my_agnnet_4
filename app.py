@@ -12,8 +12,7 @@ import train
 app = Flask(__name__)
 
 DATASET_URLS = [
-    'https://drive.google.com/drive/folders/131rtWfO1wKf7c-2nVgw65Tkpod3N0wbv?usp=sharing',
-    'https://drive.google.com/drive/folders/1PE8LNwFMmjE_LQtUA2vcbQYk9Jh0ohGa?usp=sharing'
+    'https://drive.google.com/drive/folders/1iZE_Cg5wAk_94Uk1DgNrOLiqp4F6cbfZ?usp=sharing'
 ]
 
 # In-memory logs for simplicity

@@ -3,9 +3,8 @@ The datasets referenced by the user are extremely large (over 2 GB in total). Th
 ```bash
 pip install gdown
 
-gdown 'https://drive.google.com/drive/folders/131rtWfO1wKf7c-2nVgw65Tkpod3N0wbv?usp=sharing' --folder
-
-gdown 'https://drive.google.com/drive/folders/1PE8LNwFMmjE_LQtUA2vcbQYk9Jh0ohGa?usp=sharing' --folder
+# All datasets are now hosted in a single Google Drive folder.
+gdown 'https://drive.google.com/drive/folders/1iZE_Cg5wAk_94Uk1DgNrOLiqp4F6cbfZ?usp=sharing' --folder
 ```
 
 This will recreate the `data` and `dataset` directories with the same structure as provided in the Google Drive folders.

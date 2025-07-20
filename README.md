@@ -7,7 +7,7 @@ This repository contains a small collection of scripts for experimenting with va
 - `models.py` – Implementation of baseline GCN and GraphSAGE models along with research prototypes such as `AGNNet`.
 - `train.py` – Reusable routines for full-batch and sampled mini-batch training.
 - `main.py` – Command line interface to run a single experiment.
-- `DOWNLOAD_INSTRUCTIONS.md` – Steps for obtaining large datasets from the provided Google Drive folders.
+- `DOWNLOAD_INSTRUCTIONS.md` – Steps for obtaining large datasets from the provided Google Drive folder.
 
 ## Getting Started
 1. Install dependencies:
@@ -15,7 +15,7 @@ This repository contains a small collection of scripts for experimenting with va
    pip install -r requirements.txt  # if provided
    ```
    PyTorch and PyTorch Geometric must be installed with versions that match your system and CUDA setup.
-2. Download the datasets following [DOWNLOAD_INSTRUCTIONS.md](DOWNLOAD_INSTRUCTIONS.md).
+2. Download the datasets from the provided Google Drive folder by following [DOWNLOAD_INSTRUCTIONS.md](DOWNLOAD_INSTRUCTIONS.md).
 3. Run an experiment:
    ```bash
    python main.py --model BaselineGCN --dataset OGB-Arxiv --epochs 20

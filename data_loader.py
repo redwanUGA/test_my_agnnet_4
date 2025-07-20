@@ -62,6 +62,10 @@ def _load_pt_dataset(pt_path):
         data.val_mask[idx[train_end:val_end]] = True
         data.test_mask[idx[val_end:]] = True
 
+    # ADDED THIS LINE TO FIX THE BUG
+    if isinstance(data, dict):
+        data = Data.from_dict(data)
+
     feat_dim = data.x.size(1)
     num_classes = int(data.y.max().item()) + 1
     return data, feat_dim, num_classes

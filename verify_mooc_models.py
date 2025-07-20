@@ -13,7 +13,7 @@ def run_one_epoch(model, data):
 
 def main():
     device = torch.device('cpu')
-    data, feat_dim, num_classes = data_loader.load_dataset('MOOC', root='data')
+    data, feat_dim, num_classes = data_loader.load_dataset('MOOC', root='simple_data')
     data = data.to(device)
 
     models_to_test = {

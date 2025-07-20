@@ -30,7 +30,20 @@ def _load_pt_dataset(pt_path):
     ])
 
     obj = torch.load(pt_path, weights_only=False)
-    data = obj[0] if isinstance(obj, (list, tuple)) else obj
+
+    # Some preprocessing scripts store the Data object inside a dictionary or
+    # tuple. Handle these cases by extracting the first element or common keys.
+    if isinstance(obj, (list, tuple)):
+        data = obj[0]
+    elif isinstance(obj, dict) and not isinstance(obj, Data):
+        # try common keys used when saving PyG objects
+        for key in ["data", "graph", "dataset"]:
+            if key in obj:
+                obj = obj[key]
+                break
+        data = obj
+    else:
+        data = obj
 
     if not hasattr(data, 'train_mask'):
         num_nodes = data.num_nodes

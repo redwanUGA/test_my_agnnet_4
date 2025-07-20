@@ -42,6 +42,11 @@ def _load_pt_dataset(pt_path):
                 obj = obj[key]
                 break
         data = obj
+        # If the extracted object is still a plain dict, convert it to a
+        # torch_geometric.data.Data instance. Some preprocessing scripts save
+        # attributes directly in a dictionary which confuses the loader.
+        if isinstance(data, dict) and not isinstance(data, Data):
+            data = Data(**data)
     else:
         data = obj
 

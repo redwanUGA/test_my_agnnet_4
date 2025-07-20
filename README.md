@@ -45,12 +45,10 @@ Default hyperparameters:
   from those `.pt` files.
 - Use the command line flags in `main.py` to adjust hyperparameters or integrate new models.
 
-## Web Interface
-An interactive UI is provided using Flask. The pages are stored in the
-`templates/` directory and use Bootstrap for styling.
-Launch it with:
+## Desktop Interface
+An interactive GUI is now provided using PyQt5. Launch it with:
 ```bash
-python app.py
+python pyqt_ui.py
 ```
-Open `http://localhost:5000` in your browser to download datasets or start
-experiments. Logs refresh automatically.
+Use the form to download datasets or run experiments. Logs appear in the
+window in real time.

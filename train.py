@@ -1,5 +1,6 @@
 import torch
 import torch.nn.functional as F
+import dgl
 from tqdm import tqdm
 # Ensure TGN is imported from models for isinstance checks
 from models import AGNNet, TGN
@@ -11,11 +12,16 @@ def train_epoch_full(model, data, optimizer):
 
     if isinstance(model, AGNNet):
         out = model(data.x, data.edge_index, edge_weight=None)
+        labels = data.y[data.train_mask].view(-1)
+        logits = out[data.train_mask]
     else:
         out = model(data)
-
-    labels = data.y[data.train_mask].view(-1)
-    logits = out[data.train_mask]
+        if isinstance(data, dgl.DGLGraph):
+            labels = data.ndata['label'][data.ndata['train_mask']].view(-1)
+            logits = out[data.ndata['train_mask']]
+        else:
+            labels = data.y[data.train_mask].view(-1)
+            logits = out[data.train_mask]
 
     # 🔍 Check for invalid label indices
     if labels.max() >= logits.size(1) or labels.min() < 0:
@@ -36,13 +42,22 @@ def evaluate_full(model, data):
 
     if isinstance(model, AGNNet):
         out = model(data.x, data.edge_index, edge_weight=None)
+        pred = out.argmax(dim=1)
+        masks = [data.train_mask, data.val_mask, data.test_mask]
+        labels = data.y
     else:
         out = model(data)
+        pred = out.argmax(dim=1)
+        if isinstance(data, dgl.DGLGraph):
+            masks = [data.ndata['train_mask'], data.ndata['val_mask'], data.ndata['test_mask']]
+            labels = data.ndata['label']
+        else:
+            masks = [data.train_mask, data.val_mask, data.test_mask]
+            labels = data.y
 
-    pred = out.argmax(dim=1)
     accs = []
-    for mask in [data.train_mask, data.val_mask, data.test_mask]:
-        correct = (pred[mask] == data.y[mask].view(-1)).sum()
+    for mask in masks:
+        correct = (pred[mask] == labels[mask].view(-1)).sum()
         acc = correct.item() / mask.sum().item()
         accs.append(acc)
     return accs  # returns [train_acc, val_acc, test_acc]

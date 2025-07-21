@@ -67,8 +67,12 @@ class ExperimentWorker(QtCore.QThread):
 
         sys.stdout = Stream()
         try:
-            data, feat_dim, num_classes = data_loader.load_dataset(self.cfg.dataset, root='simple_data')
-            data = data.to(device)
+            if self.cfg.model in ['BaselineGCN', 'GraphSAGE']:
+                data, feat_dim, num_classes = data_loader.load_dataset_dgl(self.cfg.dataset, root='simple_data')
+                data = data.to(device)
+            else:
+                data, feat_dim, num_classes = data_loader.load_dataset(self.cfg.dataset, root='simple_data')
+                data = data.to(device)
             name = self.cfg.model.lower()
             if name == 'baselinegcn':
                 model = models.BaselineGCN(feat_dim, self.cfg.hidden, num_classes, self.cfg.dropout)

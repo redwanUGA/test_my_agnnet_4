@@ -50,8 +50,12 @@ def main():
     print(f"Configuration: {args}")
 
     # --- Data Loading ---
-    data, feat_dim, num_classes = data_loader.load_dataset(name=args.dataset, root="simple_data")
-    data = data.to(device)
+    if args.model in ["BaselineGCN", "GraphSAGE"]:
+        data, feat_dim, num_classes = data_loader.load_dataset_dgl(name=args.dataset, root="simple_data")
+        data = data.to(device)
+    else:
+        data, feat_dim, num_classes = data_loader.load_dataset(name=args.dataset, root="simple_data")
+        data = data.to(device)
 
     # --- Model Initialization ---
     model_name = args.model.lower()

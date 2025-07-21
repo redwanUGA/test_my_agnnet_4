@@ -3,6 +3,8 @@ import torch
 from torch_geometric.data import Data, Batch
 from torch_geometric.data.data import DataEdgeAttr, DataTensorAttr
 from torch_geometric.data.storage import GlobalStorage
+
+from dgl_utils import pyg_to_dgl
 import torch.serialization
 
 # Mapping from dataset name to filename within the downloaded folder
@@ -104,3 +106,10 @@ def load_dataset(name: str, root: str = _DEF_ROOT):
         f"   Train nodes: {int(data.train_mask.sum())}, Val nodes: {int(data.val_mask.sum())}, Test nodes: {int(data.test_mask.sum())}")
 
     return data, feat_dim, num_classes
+
+
+def load_dataset_dgl(name: str, root: str = _DEF_ROOT):
+    """Load a dataset and convert it to a DGLGraph."""
+    data, feat_dim, num_classes = load_dataset(name, root)
+    g = pyg_to_dgl(data)
+    return g, feat_dim, num_classes

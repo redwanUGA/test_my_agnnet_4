@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, SAGEConv, TransformerConv, MessagePassing
+from dgl.nn import GraphConv as DGLGraphConv, SAGEConv as DGLSAGEConv
+from torch_geometric.nn import TransformerConv, MessagePassing
 from torch_geometric.utils import k_hop_subgraph
 
 
@@ -9,15 +10,15 @@ from torch_geometric.utils import k_hop_subgraph
 class BaselineGCN(nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, dropout=0.5):
         super().__init__()
-        self.conv1 = GCNConv(in_channels, hidden_channels)
-        self.conv2 = GCNConv(hidden_channels, out_channels)
+        self.conv1 = DGLGraphConv(in_channels, hidden_channels)
+        self.conv2 = DGLGraphConv(hidden_channels, out_channels)
         self.dropout = dropout
 
-    def forward(self, data):
-        x, edge_index = data.x, data.edge_index
-        x = F.relu(self.conv1(x, edge_index))
+    def forward(self, g):
+        x = g.ndata['feat']
+        x = F.relu(self.conv1(g, x))
         x = F.dropout(x, p=self.dropout, training=self.training)
-        x = self.conv2(x, edge_index)
+        x = self.conv2(g, x)
         return x
 
 
@@ -26,16 +27,16 @@ class GraphSAGE(nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers=2, dropout=0.5):
         super().__init__()
         self.convs = nn.ModuleList()
-        self.convs.append(SAGEConv(in_channels, hidden_channels))
+        self.convs.append(DGLSAGEConv(in_channels, hidden_channels, 'mean'))
         for _ in range(num_layers - 2):
-            self.convs.append(SAGEConv(hidden_channels, hidden_channels))
-        self.convs.append(SAGEConv(hidden_channels, out_channels))
+            self.convs.append(DGLSAGEConv(hidden_channels, hidden_channels, 'mean'))
+        self.convs.append(DGLSAGEConv(hidden_channels, out_channels, 'mean'))
         self.dropout = dropout
 
-    def forward(self, data):
-        x, edge_index = data.x, data.edge_index
+    def forward(self, g):
+        x = g.ndata['feat']
         for i, conv in enumerate(self.convs):
-            x = conv(x, edge_index)
+            x = conv(g, x)
             if i < len(self.convs) - 1:
                 x = F.relu(x)
                 x = F.dropout(x, p=self.dropout, training=self.training)

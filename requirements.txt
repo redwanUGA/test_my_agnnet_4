@@ -9,5 +9,11 @@ torch
 torch-geometric
 ogb
 
+# Optional extensions for efficient neighbor sampling
+# Ensure the version string matches your installed PyTorch and CUDA
+torch-scatter
+torch-sparse
+pyg_lib
+
 gdown
 PyQt5

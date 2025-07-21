@@ -2,6 +2,7 @@ import argparse
 import gc
 import torch
 from torch_geometric.loader import NeighborLoader
+from simple_sampler import SimpleNeighborLoader
 
 import data_loader
 import models
@@ -95,12 +96,10 @@ def main():
                 import pyg_lib  # noqa: F401
                 deps_available = True
             except ImportError:
-                msg = (
-                    "NeighborLoader requires either 'torch_sparse' or 'pyg_lib'. "
-                    "Falling back to full-batch training for Reddit."
+                print(
+                    "Optional PyG extensions not available. "
+                    "Using slower SimpleNeighborLoader fallback."
                 )
-                print(msg)
-                is_sampled = False
 
         if deps_available:
             print("Using NeighborSampler for mini-batch training.")
@@ -129,6 +128,30 @@ def main():
                 batch_size=batch_size,
                 input_nodes=data.test_mask,
                 num_workers=4,
+            )
+        else:
+            neighbor_sizes = [15] * args.num_layers
+            batch_size = 512
+            args.accum_steps = 2
+            train_loader = SimpleNeighborLoader(
+                data,
+                num_neighbors=neighbor_sizes,
+                batch_size=batch_size,
+                input_nodes=data.train_mask,
+            )
+            val_loader = SimpleNeighborLoader(
+                data,
+                num_neighbors=neighbor_sizes,
+                batch_size=batch_size,
+                input_nodes=data.val_mask,
+                shuffle=False,
+            )
+            test_loader = SimpleNeighborLoader(
+                data,
+                num_neighbors=neighbor_sizes,
+                batch_size=batch_size,
+                input_nodes=data.test_mask,
+                shuffle=False,
             )
 
     if not is_sampled:

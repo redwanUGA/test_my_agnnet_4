@@ -15,6 +15,12 @@ This repository contains a small collection of scripts for experimenting with va
    pip install -r requirements.txt  # if provided
    ```
    PyTorch and PyTorch Geometric must be installed with versions that match your system and CUDA setup.
+   For large datasets we rely on the `NeighborLoader` from PyTorch Geometric.
+   Install the optional extensions (`torch-scatter`, `torch-sparse` and `pyg_lib`)
+   so mini-batch sampling works and GPU memory usage stays low. If these packages
+   need to be compiled from source, ensure the `pybind11` headers are available
+   (e.g. `pip install pybind11`). When these extensions are missing, a slower
+   fallback called `SimpleNeighborLoader` implemented in pure Python will be used.
 2. Download the datasets from the provided Google Drive folder by following [DOWNLOAD_INSTRUCTIONS.md](DOWNLOAD_INSTRUCTIONS.md).
    The archives will create a `simple_data/` directory containing `.pt` files.
 3. Run an experiment:

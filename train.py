@@ -180,3 +180,5 @@ def run_training_session(
         print("   (To get final test accuracy, load best model and run on a test loader)")
     else:
         print(f"-> Best Val Acc for {args.dataset}: {best_val_acc:.4f}, Test Acc @ Best Val: {best_test_acc:.4f}")
+
+    return best_val_acc, best_test_acc, model

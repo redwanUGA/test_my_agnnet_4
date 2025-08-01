@@ -1,5 +1,7 @@
 import argparse
 import gc
+import json
+import os
 import torch
 from torch_geometric.loader import NeighborLoader
 from simple_sampler import SimpleNeighborLoader
@@ -16,7 +18,7 @@ def parse_args():
     parser.add_argument(
         "--model",
         required=True,
-        choices=["BaselineGCN", "GraphSAGE", "TGAT", "TGN", "AGNNet"],
+        choices=["BaselineGCN", "GraphSAGE", "GAT", "TGAT", "TGN", "AGNNet"],
         help="Model architecture to use",
     )
     parser.add_argument(
@@ -40,12 +42,35 @@ def parse_args():
         "--weight-decay", type=float, default=5e-4, help="Weight decay")
     parser.add_argument(
         "--num-layers", type=int, default=2, help="Number of GNN layers")
+    parser.add_argument(
+        "--aggr", type=str, default="mean", help="Aggregator for GraphSAGE")
+    parser.add_argument(
+        "--heads", type=int, default=2, help="Number of attention heads for GAT/TGAT")
+    parser.add_argument(
+        "--time-dim", type=int, default=32, help="Temporal dimension for TGAT")
+    parser.add_argument(
+        "--mem", type=int, default=100, help="Memory dimension for TGN")
+    parser.add_argument(
+        "--encoder", type=int, default=64, help="Encoder dimension for TGN")
+    parser.add_argument(
+        "--tau", type=float, default=0.9, help="Threshold tau for AGNNet")
+    parser.add_argument(
+        "--k", type=int, default=2, help="k-hop value for AGNNet")
+    parser.add_argument(
+        "--load-model", type=str, default=None, help="Path to model checkpoint")
+    parser.add_argument(
+        "--config", type=str, default=None, help="JSON file with hyperparameters")
     return parser.parse_args()
 
 
 def main():
     """Run a single training experiment based on command line arguments."""
     args = parse_args()
+    if args.config and os.path.exists(args.config):
+        with open(args.config, "r") as f:
+            cfg = json.load(f)
+        for k, v in cfg.items():
+            setattr(args, k, v)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Initial setup on device: {device}")
     print(f"Configuration: {args}")
@@ -60,7 +85,22 @@ def main():
     if model_name == "baselinegcn":
         model = models.BaselineGCN(feat_dim, args.hidden_channels, num_classes, args.dropout)
     elif model_name == "graphsage":
-        model = models.GraphSAGE(feat_dim, args.hidden_channels, num_classes, args.num_layers, args.dropout)
+        model = models.GraphSAGE(
+            feat_dim,
+            args.hidden_channels,
+            num_classes,
+            num_layers=args.num_layers,
+            dropout=args.dropout,
+            aggr=args.aggr,
+        )
+    elif model_name == "gat":
+        model = models.GAT(
+            feat_dim,
+            args.hidden_channels,
+            num_classes,
+            heads=args.heads,
+            dropout=args.dropout,
+        )
     elif model_name == "tgat":
         model = models.TGAT(
             feat_dim,
@@ -68,13 +108,32 @@ def main():
             num_classes,
             num_layers=args.num_layers,
             dropout=args.dropout,
+            heads=args.heads,
+            time_dim=args.time_dim,
         )
     elif model_name == "tgn":
-        model = models.TGN(data.num_nodes, args.hidden_channels, 1, num_classes)
+        model = models.TGN(
+            data.num_nodes,
+            args.mem,
+            1,
+            num_classes,
+            heads=args.heads,
+        )
     elif model_name == "agnnet":
-        model = models.AGNNet(feat_dim, args.hidden_channels, num_classes, dropout=args.dropout)
+        model = models.AGNNet(
+            feat_dim,
+            args.hidden_channels,
+            num_classes,
+            tau=args.tau,
+            k=args.k,
+            dropout=args.dropout,
+        )
     else:
         raise ValueError(f"Model '{args.model}' not implemented")
+
+    if args.load_model and os.path.exists(args.load_model):
+        state_dict = torch.load(args.load_model, map_location=device)
+        model.load_state_dict(state_dict)
 
     model = model.to(device)
 

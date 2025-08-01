@@ -1,7 +1,13 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, SAGEConv, TransformerConv, MessagePassing
+from torch_geometric.nn import (
+    GCNConv,
+    SAGEConv,
+    GATConv,
+    TransformerConv,
+    MessagePassing,
+)
 from torch_geometric.utils import k_hop_subgraph
 
 
@@ -23,14 +29,16 @@ class BaselineGCN(nn.Module):
 
 # === GraphSAGE ===
 class GraphSAGE(nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels, num_layers=2, dropout=0.5):
+    def __init__(self, in_channels, hidden_channels, out_channels, num_layers=2,
+                 dropout=0.5, aggr="mean"):
         super().__init__()
         self.convs = nn.ModuleList()
-        self.convs.append(SAGEConv(in_channels, hidden_channels))
+        self.convs.append(SAGEConv(in_channels, hidden_channels, aggr=aggr))
         for _ in range(num_layers - 2):
-            self.convs.append(SAGEConv(hidden_channels, hidden_channels))
-        self.convs.append(SAGEConv(hidden_channels, out_channels))
+            self.convs.append(SAGEConv(hidden_channels, hidden_channels, aggr=aggr))
+        self.convs.append(SAGEConv(hidden_channels, out_channels, aggr=aggr))
         self.dropout = dropout
+        self.aggr = aggr
 
     def forward(self, data):
         x, edge_index = data.x, data.edge_index
@@ -39,6 +47,26 @@ class GraphSAGE(nn.Module):
             if i < len(self.convs) - 1:
                 x = F.relu(x)
                 x = F.dropout(x, p=self.dropout, training=self.training)
+        return x
+
+
+# === GAT ===
+class GAT(nn.Module):
+    def __init__(self, in_channels, hidden_channels, out_channels, heads=2,
+                 dropout=0.5):
+        super().__init__()
+        self.conv1 = GATConv(in_channels, hidden_channels, heads=heads,
+                             dropout=dropout)
+        self.conv2 = GATConv(hidden_channels * heads, out_channels, heads=1,
+                             dropout=dropout)
+        self.dropout = dropout
+        self.heads = heads
+
+    def forward(self, data):
+        x, edge_index = data.x, data.edge_index
+        x = F.relu(self.conv1(x, edge_index))
+        x = F.dropout(x, p=self.dropout, training=self.training)
+        x = self.conv2(x, edge_index)
         return x
 
 

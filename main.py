@@ -52,6 +52,7 @@ def main():
 
     # --- Data Loading ---
     data, feat_dim, num_classes = data_loader.load_dataset(name=args.dataset, root="simple_data")
+    data = data_loader.apply_smote(data)
     data = data.to(device)
 
     # --- Model Initialization ---

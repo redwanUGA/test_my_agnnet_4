@@ -104,3 +104,54 @@ def load_dataset(name: str, root: str = _DEF_ROOT):
         f"   Train nodes: {int(data.train_mask.sum())}, Val nodes: {int(data.val_mask.sum())}, Test nodes: {int(data.test_mask.sum())}")
 
     return data, feat_dim, num_classes
+
+
+def apply_smote(data):
+    """Apply SMOTE oversampling to the training nodes of a graph dataset."""
+    try:
+        from imblearn.over_sampling import SMOTE
+    except ImportError as e:
+        raise ImportError(
+            "imblearn is required for SMOTE. Install with 'pip install imbalanced-learn'"
+        ) from e
+
+    train_idx = data.train_mask.nonzero(as_tuple=False).view(-1)
+    if train_idx.numel() == 0:
+        return data
+
+    X = data.x[train_idx].cpu().numpy()
+    y = data.y[train_idx].cpu().numpy()
+    sm = SMOTE()
+    X_res, y_res = sm.fit_resample(X, y)
+    num_new = len(X_res) - len(X)
+    if num_new <= 0:
+        return data
+
+    X_res = torch.tensor(X_res, dtype=data.x.dtype)
+    y_res = torch.tensor(y_res, dtype=data.y.dtype)
+
+    new_x = X_res[-num_new:].to(data.x.device)
+    new_y = y_res[-num_new:].to(data.y.device)
+
+    data.x = torch.cat([data.x, new_x], dim=0)
+    data.y = torch.cat([data.y, new_y], dim=0)
+
+    true_mask = torch.ones(num_new, dtype=data.train_mask.dtype, device=data.train_mask.device)
+    false_mask = torch.zeros(num_new, dtype=data.train_mask.dtype, device=data.train_mask.device)
+
+    data.train_mask = torch.cat([data.train_mask, true_mask], dim=0)
+    data.val_mask = torch.cat([data.val_mask, false_mask], dim=0)
+    data.test_mask = torch.cat([data.test_mask, false_mask], dim=0)
+
+    new_node_ids = torch.arange(data.x.size(0) - num_new, data.x.size(0), device=data.edge_index.device)
+    loop_edges = torch.stack([new_node_ids, new_node_ids], dim=0)
+    data.edge_index = torch.cat([data.edge_index, loop_edges], dim=1)
+
+    if getattr(data, 'edge_attr', None) is not None:
+        edge_attr_dim = data.edge_attr.size(1)
+        new_edge_attr = torch.zeros((num_new, edge_attr_dim), dtype=data.edge_attr.dtype, device=data.edge_attr.device)
+        data.edge_attr = torch.cat([data.edge_attr, new_edge_attr], dim=0)
+
+    data.num_nodes = data.x.size(0)
+
+    return data

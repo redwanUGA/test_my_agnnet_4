@@ -31,6 +31,13 @@ This repository contains a small collection of scripts for experimenting with va
    be supplied via command line flags (see `python main.py --help`). Defaults
    for these optional values are printed as part of the configuration output.
 
+4. Run all predefined experiments and capture logs:
+   ```bash
+   bash run_all_experiments.sh
+   ```
+   Output is streamed to the console and a timestamped log is written to the
+   `logs/` directory.
+
 ### Valid command line values
 Models:
 `BaselineGCN`, `GraphSAGE`, `TGAT`, `TGN`, `AGNNet`

@@ -2,6 +2,13 @@
 # Install dependencies, download datasets and run all model-dataset experiments.
 set -e
 
+# Save logs to a timestamped text file while also printing to stdout
+LOG_DIR="logs"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/run_all_experiments_$(date +'%Y%m%d_%H%M%S').txt"
+echo "Saving logs to $LOG_FILE"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
 # 1. Install Python requirements
 pip install -r requirements.txt
 

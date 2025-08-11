@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Robust runner: venv, portable logging, skip PyQt5 during headless installs, and ensure PyG wheels match Torch.
+# Robust runner: venv, portable logging, and ensure PyG wheels match Torch.
 
 set -euo pipefail
 
@@ -39,20 +39,15 @@ cleanup() {
 trap cleanup EXIT
 
 # -----------------------
-# 1) Install Python requirements (without PyQt5 to avoid SIP/packaging build issues)
+# 1) Install Python requirements
 # -----------------------
-REQ_TMP=".tmp_requirements_no_gui.txt"
-# Remove GUI deps and PyG extension packages (installed later with the
-# correct wheel index) in a case-insensitive manner
-awk 'BEGIN{IGNORECASE=1} /^[[:space:]]*(pyqt5|torch-scatter|torch-sparse)(\b|[=<> ]).*/ {next} {print}' requirements.txt > "$REQ_TMP"
+REQ_TMP=".tmp_requirements_no_extensions.txt"
+# Remove PyG extension packages (installed later with the correct wheel index)
+# in a case-insensitive manner
+awk 'BEGIN{IGNORECASE=1} /^[[:space:]]*(torch-scatter|torch-sparse)(\b|[=<> ]).*/ {next} {print}' requirements.txt > "$REQ_TMP"
 
-echo "[INFO] Installing requirements without GUI deps…"
+echo "[INFO] Installing core requirements…"
 pip install -r "$REQ_TMP"
-
-# (Optional) Try to install a prebuilt PyQt5 wheel; if none available, skip silently.
-# This keeps experiments working headless, while allowing GUI on platforms with wheels.
-echo "[INFO] Attempting optional PyQt5 wheel install (non-fatal if unavailable)…"
-pip install --only-binary=:all: PyQt5==5.15.11 || true
 
 # -----------------------
 # 1b) Ensure PyG binary wheels match your Torch (prevents building torch-scatter/torch-sparse from source)

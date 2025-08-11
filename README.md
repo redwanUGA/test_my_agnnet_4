@@ -57,10 +57,3 @@ Default hyperparameters:
   from those `.pt` files.
 - Use the command line flags in `main.py` to adjust hyperparameters or integrate new models.
 
-## Desktop Interface
-An interactive GUI is now provided using PyQt5. Launch it with:
-```bash
-python pyqt_ui.py
-```
-Use the form to download datasets or run experiments. Logs appear in the
-window in real time.

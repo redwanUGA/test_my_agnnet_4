@@ -19,5 +19,4 @@ ogb
 # Additional utilities
 gdown
 scikit-learn
-PyQt5
 imbalanced-learn

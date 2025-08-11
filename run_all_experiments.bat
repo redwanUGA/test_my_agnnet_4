@@ -3,6 +3,8 @@ setlocal enabledelayedexpansion
 
 REM Robust runner: portable logging and ensure PyG wheels match Torch.
 
+pip install -r requirements.txt
+
 REM If we are executing locally (default), delegate to the Vast.ai helper which
 REM rents a remote GPU, runs this script there, and tears the instance down. The
 REM remote invocation sets RUNNING_IN_VAST=1 to skip this block.

@@ -4,14 +4,14 @@
 set -euo pipefail
 
 # -----------------------
-# 0) Virtualenv (isolate from system Python)
+# 0) Activate existing virtual environment
 # -----------------------
-PYTHON_BIN="${PYTHON_BIN:-python3}"
-"$PYTHON_BIN" -m venv .venv
+if [ ! -d ".venv" ]; then
+  echo "[ERROR] .venv not found. Please create it before running this script."
+  exit 1
+fi
 # shellcheck disable=SC1091
 source .venv/bin/activate
-
-python -m pip install --upgrade pip setuptools wheel packaging build
 
 # -----------------------
 # Logging (portable; no process substitution)
@@ -39,57 +39,7 @@ cleanup() {
 trap cleanup EXIT
 
 # -----------------------
-# 1) Install Python requirements
-# -----------------------
-REQ_TMP=".tmp_requirements_no_extensions.txt"
-# Remove PyG extension packages (installed later with the correct wheel index)
-# in a case-insensitive manner
-awk 'BEGIN{IGNORECASE=1} /^[[:space:]]*(torch-scatter|torch-sparse)(\b|[=<> ]).*/ {next} {print}' requirements.txt > "$REQ_TMP"
-
-echo "[INFO] Installing core requirements…"
-pip install -r "$REQ_TMP"
-
-# -----------------------
-# 1b) Ensure PyG binary wheels match your Torch (prevents building torch-scatter/torch-sparse from source)
-# -----------------------
-python - <<'PY'
-import re, torch, sys, subprocess
-ver = torch.__version__  # e.g., "2.3.1+cu121" or "2.3.1"
-m = re.match(r'^(\d+\.\d+)', ver)
-if not m:
-    print(f"[WARN] Could not parse torch version from {ver}", flush=True)
-    sys.exit(0)
-
-major_minor = m.group(1)
-# Determine CUDA tag understood by PyG wheel index
-cuda = torch.version.cuda
-if cuda is None:
-    tag = f"torch-{major_minor}+cpu"
-else:
-    # cuda like "12.1" -> cu121
-    cu = "cu" + "".join(cuda.split("."))
-    tag = f"torch-{major_minor}+{cu}"
-
-index = f"https://data.pyg.org/whl/{tag}.html"
-pkgs = ["pyg_lib", "torch_scatter", "torch_sparse", "torch_cluster", "torch_spline_conv"]
-
-# 'pyg_lib' does not currently provide wheels for ARM architectures which
-# causes `pip install` to fail.  Skip it on those systems so the remaining
-# extensions can still be installed.
-import platform
-arch = platform.machine().lower()
-if arch in {"aarch64", "arm64"}:
-    print(f"[WARN] Skipping pyg_lib: no wheel for architecture '{arch}'", flush=True)
-    pkgs.remove("pyg_lib")
-
-cmd = [sys.executable, "-m", "pip", "install", "-U"] + pkgs + ["-f", index]
-print("[INFO] Installing PyG extensions from:", index, flush=True)
-print("[INFO] Command:", " ".join(cmd), flush=True)
-subprocess.check_call(cmd)
-PY
-
-# -----------------------
-# 2) Download datasets if missing
+# 1) Download datasets if missing
 # -----------------------
 if [ ! -d "simple_data" ]; then
   echo "[INFO] Downloading datasets to simple_data/ …"
@@ -98,7 +48,7 @@ if [ ! -d "simple_data" ]; then
 fi
 
 # -----------------------
-# 3) Experiment settings
+# 2) Experiment settings
 # -----------------------
 SEARCH_EPOCHS="${SEARCH_EPOCHS:-1}"
 EPOCHS="${EPOCHS:-2}"
@@ -109,7 +59,7 @@ models=(BaselineGCN GraphSAGE GAT TGAT TGN AGNNet)
 datasets=("OGB-Arxiv" "Reddit" "TGB-Wiki" "MOOC")
 
 # -----------------------
-# 4) Run hyperparameter search (if needed) and training
+# 3) Run hyperparameter search (if needed) and training
 # -----------------------
 for model in "${models[@]}"; do
   for dataset in "${datasets[@]}"; do

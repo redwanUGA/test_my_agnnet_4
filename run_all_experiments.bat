@@ -1,0 +1,68 @@
+@echo off
+setlocal enabledelayedexpansion
+
+REM Robust runner: portable logging and ensure PyG wheels match Torch.
+
+REM If we are executing locally (default), delegate to the Vast.ai helper which
+REM rents a remote GPU, runs this script there, and tears the instance down. The
+REM remote invocation sets RUNNING_IN_VAST=1 to skip this block.
+if not "%RUNNING_IN_VAST%"=="1" (
+  python vast_gpu_runner.py %*
+  exit /b %ERRORLEVEL%
+)
+
+REM -----------------------
+REM Logging (portable)
+REM -----------------------
+set "LOG_DIR=logs"
+if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
+for /f %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyyMMdd_HHmmss"') do set "TIMESTAMP=%%i"
+set "LOG_FILE=%LOG_DIR%\run_all_experiments_%TIMESTAMP%.txt"
+powershell -NoProfile -Command "Start-Transcript -Path '%LOG_FILE%' | Out-Null"
+
+REM -----------------------
+REM 1) Download datasets if missing
+REM -----------------------
+if not exist "simple_data" (
+  echo [INFO] Downloading datasets to simple_data/ …
+  gdown "https://drive.google.com/drive/folders/1iZE_Cg5wAk_94Uk1DgNrOLiqp4F6cbfZ?usp=sharing" --folder
+)
+
+REM -----------------------
+REM 2) Experiment settings
+REM -----------------------
+if "%SEARCH_EPOCHS%"=="" set "SEARCH_EPOCHS=1"
+if "%EPOCHS%"=="" set "EPOCHS=2"
+set "SAVE_DIR=saved_models"
+if not exist "%SAVE_DIR%" mkdir "%SAVE_DIR%"
+
+REM -----------------------
+REM 3) Run hyperparameter search (if needed) and training
+REM -----------------------
+for %%M in (BaselineGCN GraphSAGE GAT TGAT TGN AGNNet) do (
+  for %%D in (OGB-Arxiv Reddit TGB-Wiki MOOC) do (
+    if not exist "%SAVE_DIR%\%%M_%%D.pt" (
+      set NEED_SEARCH=1
+    ) else if not exist "%SAVE_DIR%\%%M_%%D_params.json" (
+      set NEED_SEARCH=1
+    ) else (
+      set NEED_SEARCH=0
+    )
+
+    if "!NEED_SEARCH!"=="1" (
+      echo [!DATE! !TIME!] Hyperparameter search for model=%%M dataset=%%D
+      python hyperparameter_search.py --model %%M --dataset %%D --epochs %SEARCH_EPOCHS% --save-dir %SAVE_DIR%
+    ) else (
+      echo [!DATE! !TIME!] Using existing model/config for model=%%M dataset=%%D
+    )
+
+    echo [!DATE! !TIME!] Training model=%%M dataset=%%D
+    python main.py --model %%M --dataset %%D --epochs %EPOCHS% --load-model "%SAVE_DIR%\%%M_%%D.pt" --config "%SAVE_DIR%\%%M_%%D_params.json"
+  )
+)
+
+echo [DONE] All experiments completed.
+
+powershell -NoProfile -Command "Stop-Transcript" >NUL
+
+endlocal

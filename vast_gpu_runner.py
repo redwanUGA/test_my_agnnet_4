@@ -5,8 +5,7 @@ This script reads an API key from ``vast_api_key.txt`` and then:
 1. Searches for a Pytorch-CUDA template instance with >=96% reliability,
    an NVIDIA GPU priced between 1-2 USD/hour.
 2. Rents the instance with SSH enabled.
-3. Copies the current repository to the instance, sets up a virtual
-   environment, and executes ``run_all_experiments.sh`` remotely.
+3. Copies the current repository to the instance, installs dependencies, and executes ``run_all_experiments.sh`` remotely.
 4. Retrieves ``logs/`` and ``saved_models/`` back to the local machine.
 5. Destroys the instance to avoid further charges.
 
@@ -125,14 +124,11 @@ def run_remote(ssh_uri: str) -> None:
     # Copy repository to the remote machine.
     subprocess.run(["scp", "-P", str(port), "-r", str(repo_dir), f"{remote}:~/repo"], check=True)
 
-    # Execute the experiment script remotely. We create a virtual environment,
-    # install dependencies, and then run the experiment script with an
+    # Execute the experiment script remotely. Install dependencies and then run the experiment script with an
     # environment variable that prevents recursive Vast.ai orchestration.
     remote_cmd = (
         "cd repo && "
-        "python3 -m venv .venv && "
-        ". .venv/bin/activate && "
-        "pip install -r requirements.txt && "
+        "python3 -m pip install -r requirements.txt && "
         "RUNNING_IN_VAST=1 bash run_all_experiments.sh"
     )
     subprocess.run(["ssh", "-p", str(port), remote, remote_cmd], check=True)

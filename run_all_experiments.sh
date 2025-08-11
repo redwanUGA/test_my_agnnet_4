@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Robust runner: venv, portable logging, and ensure PyG wheels match Torch.
+# Robust runner: portable logging and ensure PyG wheels match Torch.
 
 set -euo pipefail
 
@@ -10,16 +10,6 @@ if [ "${RUNNING_IN_VAST:-0}" != "1" ]; then
   python vast_gpu_runner.py "$@"
   exit $?
 fi
-
-# -----------------------
-# 0) Activate existing virtual environment
-# -----------------------
-if [ ! -d ".venv" ]; then
-  echo "[ERROR] .venv not found. Please create it before running this script."
-  exit 1
-fi
-# shellcheck disable=SC1091
-source .venv/bin/activate
 
 # -----------------------
 # Logging (portable; no process substitution)

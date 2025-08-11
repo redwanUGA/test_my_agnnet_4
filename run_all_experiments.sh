@@ -42,8 +42,9 @@ trap cleanup EXIT
 # 1) Install Python requirements (without PyQt5 to avoid SIP/packaging build issues)
 # -----------------------
 REQ_TMP=".tmp_requirements_no_gui.txt"
-# Remove any line that starts with "PyQt5" (case-insensitive)
-awk 'BEGIN{IGNORECASE=1} /^[[:space:]]*pyqt5(\b|[=<> ]).*/ {next} {print}' requirements.txt > "$REQ_TMP"
+# Remove GUI deps and PyG extension packages (installed later with the
+# correct wheel index) in a case-insensitive manner
+awk 'BEGIN{IGNORECASE=1} /^[[:space:]]*(pyqt5|torch-scatter|torch-sparse)(\b|[=<> ]).*/ {next} {print}' requirements.txt > "$REQ_TMP"
 
 echo "[INFO] Installing requirements without GUI deps…"
 pip install -r "$REQ_TMP"

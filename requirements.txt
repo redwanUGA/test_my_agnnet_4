@@ -13,7 +13,7 @@ ogb
 # Ensure the version string matches your installed PyTorch and CUDA
 torch-scatter
 torch-sparse
-pyg_lib
+
 
 # Additional utilities
 gdown

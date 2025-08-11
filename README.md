@@ -14,12 +14,13 @@ This repository contains a small collection of scripts for experimenting with va
    ```bash
    pip install -r requirements.txt
    ```
-   `run_all_experiments.sh` installs the PyTorch Geometric extensions
-   (`torch-scatter`, `torch-sparse`, `pyg_lib`, etc.) after ensuring they match the
-   detected PyTorch/CUDA version. If you install requirements manually you can
-   omit these optional packages or install them separately.
-   When the extensions are missing, a slower fallback loader implemented in pure
-   Python will be used.
+  `run_all_experiments.sh` installs the PyTorch Geometric extensions
+  (`torch-scatter`, `torch-sparse`, `pyg_lib`, etc.) after ensuring they match the
+  detected PyTorch/CUDA version. On ARM systems where the `pyg_lib` wheel is not
+  available, the script skips it automatically.
+  If you install requirements manually you can omit these optional packages or
+  install them separately. When the extensions are missing, a slower fallback
+  loader implemented in pure Python will be used.
 2. Download the datasets from the provided Google Drive folder by following [DOWNLOAD_INSTRUCTIONS.md](DOWNLOAD_INSTRUCTIONS.md).
    The archives will create a `simple_data/` directory containing `.pt` files.
 3. Run an experiment:

@@ -72,6 +72,16 @@ else:
 
 index = f"https://data.pyg.org/whl/{tag}.html"
 pkgs = ["pyg_lib", "torch_scatter", "torch_sparse", "torch_cluster", "torch_spline_conv"]
+
+# 'pyg_lib' does not currently provide wheels for ARM architectures which
+# causes `pip install` to fail.  Skip it on those systems so the remaining
+# extensions can still be installed.
+import platform
+arch = platform.machine().lower()
+if arch in {"aarch64", "arm64"}:
+    print(f"[WARN] Skipping pyg_lib: no wheel for architecture '{arch}'", flush=True)
+    pkgs.remove("pyg_lib")
+
 cmd = [sys.executable, "-m", "pip", "install", "-U"] + pkgs + ["-f", index]
 print("[INFO] Installing PyG extensions from:", index, flush=True)
 print("[INFO] Command:", " ".join(cmd), flush=True)

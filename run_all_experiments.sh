@@ -3,6 +3,14 @@
 
 set -euo pipefail
 
+# If we are executing locally (default), delegate to the Vast.ai helper which
+# rents a remote GPU, runs this script there, and tears the instance down. The
+# remote invocation sets RUNNING_IN_VAST=1 to skip this block.
+if [ "${RUNNING_IN_VAST:-0}" != "1" ]; then
+  python vast_gpu_runner.py "$@"
+  exit $?
+fi
+
 # -----------------------
 # 0) Activate existing virtual environment
 # -----------------------

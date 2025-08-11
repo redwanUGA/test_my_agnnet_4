@@ -8,6 +8,8 @@ import torch
 import data_loader
 import models
 import train
+from torch_geometric.loader import NeighborLoader
+from simple_sampler import SimpleNeighborLoader
 
 
 def get_search_space():
@@ -212,7 +214,69 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
         model = create_model(model_name, feat_dim, num_classes, args).to(device)
 
         is_sampled = dataset == "Reddit"
-        train_loader = val_loader = test_loader = data
+        if is_sampled:
+            deps_available = False
+            try:
+                import torch_sparse  # noqa: F401
+                deps_available = True
+            except ImportError:
+                try:
+                    import pyg_lib  # noqa: F401
+                    deps_available = True
+                except ImportError:
+                    print(
+                        "Optional PyG extensions not available. Using SimpleNeighborLoader fallback."
+                    )
+
+            neighbor_sizes = [15] * args.num_layers
+            batch_size = 512
+
+            if deps_available:
+                train_loader = NeighborLoader(
+                    data,
+                    num_neighbors=neighbor_sizes,
+                    batch_size=batch_size,
+                    input_nodes=data.train_mask,
+                    shuffle=True,
+                    num_workers=4,
+                )
+                val_loader = NeighborLoader(
+                    data,
+                    num_neighbors=neighbor_sizes,
+                    batch_size=batch_size,
+                    input_nodes=data.val_mask,
+                    num_workers=4,
+                )
+                test_loader = NeighborLoader(
+                    data,
+                    num_neighbors=neighbor_sizes,
+                    batch_size=batch_size,
+                    input_nodes=data.test_mask,
+                    num_workers=4,
+                )
+            else:
+                train_loader = SimpleNeighborLoader(
+                    data,
+                    num_neighbors=neighbor_sizes,
+                    batch_size=batch_size,
+                    input_nodes=data.train_mask,
+                )
+                val_loader = SimpleNeighborLoader(
+                    data,
+                    num_neighbors=neighbor_sizes,
+                    batch_size=batch_size,
+                    input_nodes=data.val_mask,
+                    shuffle=False,
+                )
+                test_loader = SimpleNeighborLoader(
+                    data,
+                    num_neighbors=neighbor_sizes,
+                    batch_size=batch_size,
+                    input_nodes=data.test_mask,
+                    shuffle=False,
+                )
+        else:
+            train_loader = val_loader = test_loader = data
         val_acc, _, model = train.run_training_session(
             model,
             data,

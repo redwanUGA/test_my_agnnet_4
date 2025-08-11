@@ -2,7 +2,7 @@
 numpy
 pandas
 tqdm
-vastai
+vastai-sdk
 
 # Machine learning frameworks
 torch

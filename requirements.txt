@@ -9,10 +9,11 @@ torch
 torch-geometric
 ogb
 
-# Optional extensions for efficient neighbor sampling
-# Ensure the version string matches your installed PyTorch and CUDA
-torch-scatter
-torch-sparse
+# Optional extensions for efficient neighbor sampling. These are installed
+# separately in `run_all_experiments.sh` with wheels that match the detected
+# PyTorch/CUDA version. Uncomment below to install manually.
+# torch-scatter
+# torch-sparse
 
 
 # Additional utilities

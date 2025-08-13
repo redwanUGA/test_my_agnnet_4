@@ -25,7 +25,7 @@ This repository contains a small collection of scripts for experimenting with va
    be supplied via command line flags (see `python main.py --help`). Defaults
    for these optional values are printed as part of the configuration output.
 
-4. Run all predefined experiments and capture logs:
+4. Run all predefined experiments locally and capture logs:
   ```bash
   bash run_all_experiments.sh
   ```
@@ -33,28 +33,9 @@ This repository contains a small collection of scripts for experimenting with va
   ```bat
   run_all_experiments.bat
   ```
-  By default, these scripts orchestrate a remote run over SSH. Set the placeholders at the top of the scripts or export environment variables:
-  - REMOTE_HOST: server IP or hostname
-  - REMOTE_USER: SSH username
-  - REMOTE_PORT: optional, default 22
-  - REMOTE_DIR: optional, remote working directory (default ~/agnnet_remote)
+  These scripts now run everything locally. No remote connections (SSH/SCP) are used.
 
-  Example (bash):
-  ```bash
-  export REMOTE_HOST=203.0.113.10
-  export REMOTE_USER=ubuntu
-  export REMOTE_PORT=22
-  bash run_all_experiments.sh
-  ```
-  Example (Windows PowerShell):
-  ```powershell
-  $env:REMOTE_HOST="203.0.113.10"
-  $env:REMOTE_USER="ubuntu"
-  $env:REMOTE_PORT="22"
-  .\run_all_experiments.bat
-  ```
-  After completion, logs/ and saved_models/ are copied back to your local machine.
-  Requirements: OpenSSH client (ssh, scp) must be available on your system.
+  After completion, logs/ and saved_models/ will be present in your working directory.
 
   Output is streamed to the console and a timestamped log is written to the
   `logs/` directory.

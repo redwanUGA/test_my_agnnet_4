@@ -3,12 +3,42 @@
 
 set -euo pipefail
 
-# If we are executing locally (default), delegate to the Vast.ai helper which
-# rents a remote GPU, runs this script there, and tears the instance down. The
-# remote invocation sets RUNNING_IN_VAST=1 to skip this block.
-if [ "${RUNNING_IN_VAST:-0}" != "1" ]; then
-  python vast_gpu_runner.py "$@"
-  exit $?
+# -----------------------
+# Remote configuration (edit placeholders or set env vars)
+# -----------------------
+REMOTE_HOST="${REMOTE_HOST:-YOUR.SERVER.IP}"
+REMOTE_USER="${REMOTE_USER:-youruser}"
+REMOTE_PORT="${REMOTE_PORT:-22}"
+REMOTE_DIR="${REMOTE_DIR:-~/agnnet_remote}"
+
+# If we are executing locally (default), perform remote orchestration. The remote
+# invocation sets RUN_REMOTE=1 to skip this block and run the actual experiments.
+if [ "${RUN_REMOTE:-0}" != "1" ]; then
+  if [ "$REMOTE_HOST" = "YOUR.SERVER.IP" ]; then
+    echo "Please set REMOTE_HOST/REMOTE_USER (or edit placeholders in run_all_experiments.sh)."
+    exit 1
+  fi
+  repo_dir="$(pwd)"
+  remote="${REMOTE_USER}@${REMOTE_HOST}"
+  remote_path="${REMOTE_DIR}"
+
+  echo "[LOCAL] Preparing remote directory at ${remote}:${remote_path}"
+  ssh -p "$REMOTE_PORT" "$remote" "mkdir -p '${remote_path}' && [ -n \"${remote_path}\" ] && [ \"${remote_path}\" != \"/\" ] && rm -rf \"${remote_path}\"/*"
+
+  echo "[LOCAL] Copying repository to remote..."
+  scp -P "$REMOTE_PORT" -r "$repo_dir"/* "$remote":"$remote_path"
+
+  echo "[LOCAL] Running experiments on remote..."
+  remote_cmd="cd '${remote_path}' && python3 -m pip install -r requirements.txt && RUN_REMOTE=1 bash run_all_experiments.sh"
+  ssh -p "$REMOTE_PORT" "$remote" "$remote_cmd"
+
+  echo "[LOCAL] Fetching results back to local machine..."
+  mkdir -p logs saved_models
+  scp -P "$REMOTE_PORT" -r "$remote":"${remote_path}/logs" .
+  scp -P "$REMOTE_PORT" -r "$remote":"${remote_path}/saved_models" .
+
+  echo "[LOCAL] Done."
+  exit 0
 fi
 
 # -----------------------

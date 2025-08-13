@@ -14,13 +14,7 @@ This repository contains a small collection of scripts for experimenting with va
    ```bash
    pip install -r requirements.txt
    ```
-  `run_all_experiments.sh` installs the PyTorch Geometric extensions
-  (`torch-scatter`, `torch-sparse`, `pyg_lib`, etc.) after ensuring they match the
-  detected PyTorch/CUDA version. On ARM systems where the `pyg_lib` wheel is not
-  available, the script skips it automatically.
-  If you install requirements manually you can omit these optional packages or
-  install them separately. When the extensions are missing, a slower fallback
-  loader implemented in pure Python will be used.
+  Note: Some PyTorch Geometric extensions (e.g., torch-scatter, torch-sparse) may require CUDA-specific wheels. If needed, install them separately to match your Torch/CUDA version. When these extensions are missing, a slower fallback loader implemented in pure Python may be used.
 2. Download the datasets from the provided Google Drive folder by following [DOWNLOAD_INSTRUCTIONS.md](DOWNLOAD_INSTRUCTIONS.md).
    The archives will create a `simple_data/` directory containing `.pt` files.
 3. Run an experiment:
@@ -32,11 +26,38 @@ This repository contains a small collection of scripts for experimenting with va
    for these optional values are printed as part of the configuration output.
 
 4. Run all predefined experiments and capture logs:
-   ```bash
-   bash run_all_experiments.sh
-   ```
-   Output is streamed to the console and a timestamped log is written to the
-   `logs/` directory.
+  ```bash
+  bash run_all_experiments.sh
+  ```
+  Or on Windows PowerShell/CMD:
+  ```bat
+  run_all_experiments.bat
+  ```
+  By default, these scripts orchestrate a remote run over SSH. Set the placeholders at the top of the scripts or export environment variables:
+  - REMOTE_HOST: server IP or hostname
+  - REMOTE_USER: SSH username
+  - REMOTE_PORT: optional, default 22
+  - REMOTE_DIR: optional, remote working directory (default ~/agnnet_remote)
+
+  Example (bash):
+  ```bash
+  export REMOTE_HOST=203.0.113.10
+  export REMOTE_USER=ubuntu
+  export REMOTE_PORT=22
+  bash run_all_experiments.sh
+  ```
+  Example (Windows PowerShell):
+  ```powershell
+  $env:REMOTE_HOST="203.0.113.10"
+  $env:REMOTE_USER="ubuntu"
+  $env:REMOTE_PORT="22"
+  .\run_all_experiments.bat
+  ```
+  After completion, logs/ and saved_models/ are copied back to your local machine.
+  Requirements: OpenSSH client (ssh, scp) must be available on your system.
+
+  Output is streamed to the console and a timestamped log is written to the
+  `logs/` directory.
 
 ### Valid command line values
 Models:

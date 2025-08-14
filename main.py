@@ -60,6 +60,8 @@ def parse_args():
         "--load-model", type=str, default=None, help="Path to model checkpoint")
     parser.add_argument(
         "--config", type=str, default=None, help="JSON file with hyperparameters")
+    parser.add_argument(
+        "--num-parts", type=int, default=4, help="Number of partitions to use on OOM fallback")
     return parser.parse_args()
 
 
@@ -242,17 +244,193 @@ def main():
         train_loader = val_loader = test_loader = data
 
     # --- Training ---
-    train.run_training_session(
-        model,
-        data,
-        train_loader,
-        val_loader,
-        test_loader,
-        is_sampled,
-        device,
-        args,
-    )
+    try:
+        train.run_training_session(
+            model,
+            data,
+            train_loader,
+            val_loader,
+            test_loader,
+            is_sampled,
+            device,
+            args,
+        )
+    except torch.cuda.OutOfMemoryError as oom:
+        print("\nCUDA OOM detected during training. Triggering partitioned fallback...")
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        parts = data_loader.partition_graph(data, getattr(args, 'num_parts', 4))
+        print(f"Partitioned dataset into {len(parts)} parts. Training each part independently and averaging metrics...")
 
+        part_val_accs = []
+        part_test_accs = []
+
+        def build_and_train_on_part(part_data, part_idx):
+            # Recreate model for this partition (notably for TGN: num_nodes changes)
+            model_name = args.model.lower()
+            if model_name == "baselinegcn":
+                part_model = models.BaselineGCN(feat_dim, args.hidden_channels, num_classes, args.dropout)
+            elif model_name == "graphsage":
+                part_model = models.GraphSAGE(
+                    feat_dim,
+                    args.hidden_channels,
+                    num_classes,
+                    num_layers=args.num_layers,
+                    dropout=args.dropout,
+                    aggr=args.aggr,
+                )
+            elif model_name == "gat":
+                part_model = models.GAT(
+                    feat_dim,
+                    args.hidden_channels,
+                    num_classes,
+                    heads=args.heads,
+                    dropout=args.dropout,
+                )
+            elif model_name == "tgat":
+                part_model = models.TGAT(
+                    feat_dim,
+                    args.hidden_channels,
+                    num_classes,
+                    num_layers=args.num_layers,
+                    dropout=args.dropout,
+                    heads=args.heads,
+                    time_dim=args.time_dim,
+                )
+            elif model_name == "tgn":
+                part_model = models.TGN(
+                    part_data.num_nodes,
+                    args.mem,
+                    1,
+                    num_classes,
+                    heads=args.heads,
+                )
+            elif model_name == "agnnet":
+                part_model = models.AGNNet(
+                    feat_dim,
+                    args.hidden_channels,
+                    num_classes,
+                    tau=args.tau,
+                    k=args.k,
+                    dropout=args.dropout,
+                )
+            else:
+                raise ValueError(f"Model '{args.model}' not implemented")
+
+            # Load checkpoint if provided (skip mismatched memory tensors as above)
+            if args.load_model and os.path.exists(args.load_model):
+                state_dict = torch.load(args.load_model, map_location=device, weights_only=True)
+                model_state = part_model.state_dict()
+                filtered = {}
+                for k, v in state_dict.items():
+                    if k in model_state and v.shape == model_state[k].shape:
+                        filtered[k] = v
+                part_model.load_state_dict(filtered, strict=False)
+
+            part_model = part_model.to(device)
+
+            # Build loaders for this partition using the same logic
+            part_is_sampled = (args.dataset == "Reddit")
+            if part_is_sampled:
+                neighbor_sizes = [15] * args.num_layers
+                batch_size = 512
+                args.accum_steps = 2
+                try:
+                    from torch_geometric.loader import NeighborLoader as _NL  # reuse if available
+                    part_train_loader = _NL(
+                        part_data,
+                        num_neighbors=neighbor_sizes,
+                        batch_size=batch_size,
+                        input_nodes=part_data.train_mask,
+                        shuffle=True,
+                        num_workers=4,
+                    )
+                    part_val_loader = _NL(
+                        part_data,
+                        num_neighbors=neighbor_sizes,
+                        batch_size=batch_size,
+                        input_nodes=part_data.val_mask,
+                        num_workers=4,
+                    )
+                    part_test_loader = _NL(
+                        part_data,
+                        num_neighbors=neighbor_sizes,
+                        batch_size=batch_size,
+                        input_nodes=part_data.test_mask,
+                        num_workers=4,
+                    )
+                except Exception:
+                    # Fallback to simple sampler
+                    from simple_sampler import SimpleNeighborLoader as _SNL
+                    neighbor_sizes = [15] * args.num_layers
+                    batch_size = 512
+                    args.accum_steps = 2
+                    part_train_loader = _SNL(
+                        part_data,
+                        num_neighbors=neighbor_sizes,
+                        batch_size=batch_size,
+                        input_nodes=part_data.train_mask,
+                    )
+                    part_val_loader = _SNL(
+                        part_data,
+                        num_neighbors=neighbor_sizes,
+                        batch_size=batch_size,
+                        input_nodes=part_data.val_mask,
+                        shuffle=False,
+                    )
+                    part_test_loader = _SNL(
+                        part_data,
+                        num_neighbors=neighbor_sizes,
+                        batch_size=batch_size,
+                        input_nodes=part_data.test_mask,
+                        shuffle=False,
+                    )
+            else:
+                part_train_loader = part_val_loader = part_test_loader = part_data
+
+            print(f"\n--- Training on partition {part_idx+1}/{len(parts)} (nodes={part_data.num_nodes}, edges={part_data.edge_index.size(1)}) ---")
+            try:
+                best_val, best_test, _ = train.run_training_session(
+                    part_model,
+                    part_data,
+                    part_train_loader,
+                    part_val_loader,
+                    part_test_loader,
+                    part_is_sampled,
+                    device,
+                    args,
+                )
+            except torch.cuda.OutOfMemoryError:
+                print(f"OOM on partition {part_idx+1}. Consider increasing --num-parts.")
+                return None, None
+            finally:
+                # Cleanup per-partition
+                del part_model, part_train_loader, part_val_loader, part_test_loader
+                gc.collect()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+
+            return best_val, best_test
+
+        for i, part in enumerate(parts):
+            part = part.to(device)
+            val_acc, test_acc = build_and_train_on_part(part, i)
+            if val_acc is not None:
+                part_val_accs.append(val_acc)
+                # Only include test acc for non-sampled datasets where it's computed
+                if args.dataset != "Reddit" and test_acc is not None:
+                    part_test_accs.append(test_acc)
+
+        if part_val_accs:
+            avg_val = sum(part_val_accs) / len(part_val_accs)
+            print(f"\nAveraged Val Acc across {len(part_val_accs)} partitions: {avg_val:.4f}")
+        if part_test_accs:
+            avg_test = sum(part_test_accs) / len(part_test_accs)
+            print(f"Averaged Test Acc across {len(part_test_accs)} partitions: {avg_test:.4f}")
+        else:
+            if args.dataset == "Reddit":
+                print("Test accuracy is not computed in sampled training path; only validation accuracy is averaged.")
+    
     # --- Cleanup ---
     print("Cleaning up memory...")
     del model, data, train_loader, val_loader, test_loader

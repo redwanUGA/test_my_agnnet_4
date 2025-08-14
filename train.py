@@ -43,7 +43,8 @@ def evaluate_full(model, data):
     accs = []
     for mask in [data.train_mask, data.val_mask, data.test_mask]:
         correct = (pred[mask] == data.y[mask].view(-1)).sum()
-        acc = correct.item() / mask.sum().item()
+        total = mask.sum().item()
+        acc = (correct.item() / total) if total > 0 else 0
         accs.append(acc)
     return accs  # returns [train_acc, val_acc, test_acc]
 

@@ -214,88 +214,136 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
         data, feat_dim, num_classes = data_loader.load_dataset(name=dataset, root="simple_data")
         data = data_loader.apply_smote(data)
         data = data.to(device)
-        # Provide num_nodes to args for correct TGN initialization
-        setattr(args, "num_nodes", data.num_nodes)
-        model = create_model(model_name, feat_dim, num_classes, args).to(device)
 
-        is_sampled = dataset == "Reddit"
-        if is_sampled:
-            deps_available = False
-            try:
-                import torch_sparse  # noqa: F401
-                deps_available = True
-            except ImportError:
+        # Determine if we should partition to avoid OOM
+        use_partitions = (model_name.lower() == "tgn" and dataset == "OGB-Arxiv")
+        num_parts = int(os.environ.get("PARTITIONS", "4")) if use_partitions else 1
+
+        if use_partitions and num_parts > 1:
+            # Partition the graph and average metrics over partitions
+            parts = data_loader.partition_graph(data, num_parts)
+            val_accs = []
+            test_accs = []
+            for i, part in enumerate(parts, start=1):
+                # Create a fresh model sized to the partition
+                part_args = argparse.Namespace(**vars(args))
+                setattr(part_args, "num_nodes", part.num_nodes)
+                model = create_model(model_name, feat_dim, num_classes, part_args).to(device)
+
+                is_sampled = False  # partitions run full-batch on their subgraph
+                train_loader = val_loader = test_loader = part
+                print(f"\n--- Training partition {i}/{len(parts)}: nodes={part.num_nodes}, edges={part.edge_index.size(1)} ---")
+                val_acc, test_acc, model = train.run_training_session(
+                    model,
+                    part,
+                    train_loader,
+                    val_loader,
+                    test_loader,
+                    is_sampled,
+                    device,
+                    part_args,
+                )
+                val_accs.append(val_acc)
+                test_accs.append(test_acc)
+
+                # Proactively clear CUDA cache between partitions
+                del model
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+
+            avg_val = float(sum(val_accs) / len(val_accs)) if val_accs else -1
+            avg_test = float(sum(test_accs) / len(test_accs)) if test_accs else -1
+            print(f"\nAveraged over {len(val_accs)} partitions -> Val Acc: {avg_val:.4f}, Test Acc: {avg_test:.4f}")
+
+            # For search, select by averaged validation accuracy; keep last model state as placeholder
+            val_acc = avg_val
+            best_candidate_state = model.state_dict() if len(parts) > 0 else None
+        else:
+            # Non-partitioned path (original behavior)
+            # Provide num_nodes to args for correct TGN initialization
+            setattr(args, "num_nodes", data.num_nodes)
+            model = create_model(model_name, feat_dim, num_classes, args).to(device)
+
+            is_sampled = dataset == "Reddit"
+            if is_sampled:
+                deps_available = False
                 try:
-                    import pyg_lib  # noqa: F401
+                    import torch_sparse  # noqa: F401
                     deps_available = True
                 except ImportError:
-                    print(
-                        "Optional PyG extensions not available. Using SimpleNeighborLoader fallback."
+                    try:
+                        import pyg_lib  # noqa: F401
+                        deps_available = True
+                    except ImportError:
+                        print(
+                            "Optional PyG extensions not available. Using SimpleNeighborLoader fallback."
+                        )
+
+                neighbor_sizes = [15] * args.num_layers
+                batch_size = 512
+
+                if deps_available:
+                    train_loader = NeighborLoader(
+                        data,
+                        num_neighbors=neighbor_sizes,
+                        batch_size=batch_size,
+                        input_nodes=data.train_mask,
+                        shuffle=True,
+                        num_workers=4,
                     )
-
-            neighbor_sizes = [15] * args.num_layers
-            batch_size = 512
-
-            if deps_available:
-                train_loader = NeighborLoader(
-                    data,
-                    num_neighbors=neighbor_sizes,
-                    batch_size=batch_size,
-                    input_nodes=data.train_mask,
-                    shuffle=True,
-                    num_workers=4,
-                )
-                val_loader = NeighborLoader(
-                    data,
-                    num_neighbors=neighbor_sizes,
-                    batch_size=batch_size,
-                    input_nodes=data.val_mask,
-                    num_workers=4,
-                )
-                test_loader = NeighborLoader(
-                    data,
-                    num_neighbors=neighbor_sizes,
-                    batch_size=batch_size,
-                    input_nodes=data.test_mask,
-                    num_workers=4,
-                )
+                    val_loader = NeighborLoader(
+                        data,
+                        num_neighbors=neighbor_sizes,
+                        batch_size=batch_size,
+                        input_nodes=data.val_mask,
+                        num_workers=4,
+                    )
+                    test_loader = NeighborLoader(
+                        data,
+                        num_neighbors=neighbor_sizes,
+                        batch_size=batch_size,
+                        input_nodes=data.test_mask,
+                        num_workers=4,
+                    )
+                else:
+                    train_loader = SimpleNeighborLoader(
+                        data,
+                        num_neighbors=neighbor_sizes,
+                        batch_size=batch_size,
+                        input_nodes=data.train_mask,
+                    )
+                    val_loader = SimpleNeighborLoader(
+                        data,
+                        num_neighbors=neighbor_sizes,
+                        batch_size=batch_size,
+                        input_nodes=data.val_mask,
+                        shuffle=False,
+                    )
+                    test_loader = SimpleNeighborLoader(
+                        data,
+                        num_neighbors=neighbor_sizes,
+                        batch_size=batch_size,
+                        input_nodes=data.test_mask,
+                        shuffle=False,
+                    )
             else:
-                train_loader = SimpleNeighborLoader(
-                    data,
-                    num_neighbors=neighbor_sizes,
-                    batch_size=batch_size,
-                    input_nodes=data.train_mask,
-                )
-                val_loader = SimpleNeighborLoader(
-                    data,
-                    num_neighbors=neighbor_sizes,
-                    batch_size=batch_size,
-                    input_nodes=data.val_mask,
-                    shuffle=False,
-                )
-                test_loader = SimpleNeighborLoader(
-                    data,
-                    num_neighbors=neighbor_sizes,
-                    batch_size=batch_size,
-                    input_nodes=data.test_mask,
-                    shuffle=False,
-                )
-        else:
-            train_loader = val_loader = test_loader = data
-        val_acc, _, model = train.run_training_session(
-            model,
-            data,
-            train_loader,
-            val_loader,
-            test_loader,
-            is_sampled,
-            device,
-            args,
-        )
+                train_loader = val_loader = test_loader = data
+            val_acc, _, model = train.run_training_session(
+                model,
+                data,
+                train_loader,
+                val_loader,
+                test_loader,
+                is_sampled,
+                device,
+                args,
+            )
+            best_candidate_state = model.state_dict()
+
         if val_acc > best_acc:
             best_acc = val_acc
             best_params = params
-            best_state = model.state_dict()
+            best_state = best_candidate_state
 
     model_path = Path(save_dir) / f"{model_name}_{dataset}.pt"
     param_path = Path(save_dir) / f"{model_name}_{dataset}_params.json"

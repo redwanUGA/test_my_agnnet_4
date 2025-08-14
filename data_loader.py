@@ -4,6 +4,7 @@ from torch_geometric.data import Data, Batch
 from torch_geometric.data.data import DataEdgeAttr, DataTensorAttr
 from torch_geometric.data.storage import GlobalStorage
 import torch.serialization
+from typing import List
 
 # Mapping from dataset name to filename within the downloaded folder
 _DATASET_FILES = {
@@ -155,3 +156,104 @@ def apply_smote(data):
     data.num_nodes = data.x.size(0)
 
     return data
+
+
+def partition_graph(data: Data, num_parts: int) -> List[Data]:
+    """
+    Partition nodes into num_parts disjoint subsets and build induced subgraphs.
+    Each partition keeps its own train/val/test masks corresponding to the
+    original masks intersected with the partition's nodes.
+
+    The goal is to reduce memory usage by training/testing on smaller subgraphs.
+    """
+    if num_parts <= 1:
+        return [data]
+
+    device = data.x.device
+    N = data.num_nodes
+
+    # Helper: split indices of a mask evenly into num_parts
+    def split_mask(mask: torch.Tensor) -> List[torch.Tensor]:
+        idx = mask.nonzero(as_tuple=False).view(-1)
+        # deterministic ordering for reproducibility
+        # (use original order; could also use torch.randperm for shuffle)
+        sizes = [(len(idx) + i) // num_parts for i in range(num_parts)]
+        splits = []
+        start = 0
+        for s in sizes:
+            splits.append(idx[start:start + s])
+            start += s
+        # pad with empty tensors if needed
+        while len(splits) < num_parts:
+            splits.append(idx.new_empty(0))
+        return splits
+
+    train_splits = split_mask(data.train_mask)
+    val_splits = split_mask(data.val_mask)
+    test_splits = split_mask(data.test_mask)
+
+    parts: List[Data] = []
+
+    # Precompute a boolean mask for fast membership checks
+    for p in range(num_parts):
+        node_idx = torch.cat([train_splits[p], val_splits[p], test_splits[p]], dim=0)
+        node_idx = node_idx.unique()
+
+        # If this partition has no nodes, skip
+        if node_idx.numel() == 0:
+            continue
+
+        # Build mapping from old -> new ids
+        selected_mask = torch.zeros(N, dtype=torch.bool, device=device)
+        selected_mask[node_idx] = True
+        old_to_new = torch.full((N,), -1, dtype=torch.long, device=device)
+        old_to_new[node_idx] = torch.arange(node_idx.numel(), device=device)
+
+        # Filter edges where both endpoints are inside the partition
+        src, dst = data.edge_index[0], data.edge_index[1]
+        e_mask = selected_mask[src] & selected_mask[dst]
+        new_src = old_to_new[src[e_mask]]
+        new_dst = old_to_new[dst[e_mask]]
+        new_edge_index = torch.stack([new_src, new_dst], dim=0)
+
+        # Handle edge attributes if present
+        new_edge_attr = None
+        if getattr(data, 'edge_attr', None) is not None:
+            new_edge_attr = data.edge_attr[e_mask]
+
+        # Slice node features and labels
+        new_x = data.x[node_idx]
+        new_y = data.y[node_idx]
+
+        # Create masks for this partition (relative to node_idx)
+        part_train_mask = torch.zeros(node_idx.numel(), dtype=torch.bool, device=device)
+        part_val_mask = torch.zeros_like(part_train_mask)
+        part_test_mask = torch.zeros_like(part_train_mask)
+
+        # Build a lookup from original node ids in each split to local indices
+        if train_splits[p].numel() > 0:
+            part_train_mask[old_to_new[train_splits[p]]] = True
+        if val_splits[p].numel() > 0:
+            part_val_mask[old_to_new[val_splits[p]]] = True
+        if test_splits[p].numel() > 0:
+            part_test_mask[old_to_new[test_splits[p]]] = True
+
+        part_data = Data(
+            x=new_x,
+            y=new_y,
+            edge_index=new_edge_index,
+        )
+        part_data.num_nodes = new_x.size(0)
+        part_data.train_mask = part_train_mask
+        part_data.val_mask = part_val_mask
+        part_data.test_mask = part_test_mask
+        if new_edge_attr is not None:
+            part_data.edge_attr = new_edge_attr
+
+        # Preserve temporal info if available
+        if hasattr(data, 'edge_time'):
+            part_data.edge_time = getattr(data, 'edge_time')[e_mask]
+
+        parts.append(part_data)
+
+    return parts

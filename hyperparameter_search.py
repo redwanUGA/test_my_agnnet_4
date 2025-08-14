@@ -9,7 +9,6 @@ import data_loader
 import models
 import train
 from torch_geometric.loader import NeighborLoader
-from simple_sampler import SimpleNeighborLoader
 
 
 def get_search_space():
@@ -213,7 +212,10 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         data, feat_dim, num_classes = data_loader.load_dataset(name=dataset, root="simple_data")
         data = data_loader.apply_smote(data)
-        data = data.to(device)
+        # Keep full graph on CPU for sampled training (e.g., Reddit) to avoid GPU OOM in NeighborLoader init
+        is_sampled_dataset = dataset == "Reddit"
+        if not is_sampled_dataset:
+            data = data.to(device)
 
         # Determine if we should partition to avoid OOM
         use_partitions = (model_name.lower() == "tgn" and dataset == "OGB-Arxiv")
@@ -283,56 +285,85 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
                         deps_available = True
                     except ImportError:
                         print(
-                            "Optional PyG extensions not available. Using SimpleNeighborLoader fallback."
+                            "Optional PyG extensions not available. Proceeding with NeighborLoader on CPU graph; performance may be reduced."
                         )
 
                 neighbor_sizes = [15] * args.num_layers
                 batch_size = 512
+                num_workers = 0 if os.name == 'nt' else 4
+                pin_memory = torch.cuda.is_available()
 
-                if deps_available:
-                    train_loader = NeighborLoader(
+                def build_neighbor_loaders(ns, bs, use_neighbor=True):
+                    tl = NeighborLoader(
                         data,
-                        num_neighbors=neighbor_sizes,
-                        batch_size=batch_size,
+                        num_neighbors=ns,
+                        batch_size=bs,
                         input_nodes=data.train_mask,
                         shuffle=True,
-                        num_workers=4,
+                        num_workers=num_workers,
+                        pin_memory=pin_memory,
+                        persistent_workers=(num_workers > 0),
                     )
-                    val_loader = NeighborLoader(
+                    vl = NeighborLoader(
                         data,
-                        num_neighbors=neighbor_sizes,
-                        batch_size=batch_size,
+                        num_neighbors=ns,
+                        batch_size=bs,
                         input_nodes=data.val_mask,
-                        num_workers=4,
+                        num_workers=num_workers,
+                        pin_memory=pin_memory,
+                        persistent_workers=(num_workers > 0),
                     )
-                    test_loader = NeighborLoader(
+                    te = NeighborLoader(
                         data,
-                        num_neighbors=neighbor_sizes,
-                        batch_size=batch_size,
+                        num_neighbors=ns,
+                        batch_size=bs,
                         input_nodes=data.test_mask,
-                        num_workers=4,
+                        num_workers=num_workers,
+                        pin_memory=pin_memory,
+                        persistent_workers=(num_workers > 0),
                     )
+                    return tl, vl, te
+
+                # GPU-aware attempts based on available memory
+                free_gb = None
+                if torch.cuda.is_available():
+                    try:
+                        free_bytes = torch.cuda.mem_get_info()[0]
+                        free_gb = free_bytes / (1024**3)
+                    except Exception:
+                        free_gb = None
+                
+                if free_gb is not None and free_gb < 2.0:
+                    neighbor_sizes = [5] * args.num_layers
+                    batch_size = 128
+                elif free_gb is not None and free_gb < 4.0:
+                    neighbor_sizes = [10] * args.num_layers
+                    batch_size = 256
                 else:
-                    train_loader = SimpleNeighborLoader(
-                        data,
-                        num_neighbors=neighbor_sizes,
-                        batch_size=batch_size,
-                        input_nodes=data.train_mask,
-                    )
-                    val_loader = SimpleNeighborLoader(
-                        data,
-                        num_neighbors=neighbor_sizes,
-                        batch_size=batch_size,
-                        input_nodes=data.val_mask,
-                        shuffle=False,
-                    )
-                    test_loader = SimpleNeighborLoader(
-                        data,
-                        num_neighbors=neighbor_sizes,
-                        batch_size=batch_size,
-                        input_nodes=data.test_mask,
-                        shuffle=False,
-                    )
+                    neighbor_sizes = [15] * args.num_layers
+                    batch_size = 512
+                
+                attempts = [
+                    (neighbor_sizes, batch_size),
+                    ([10] * args.num_layers, 256),
+                    ([5] * args.num_layers, 128),
+                    ([3] * args.num_layers, 64),
+                    ([2] * args.num_layers, 32),
+                ]
+                
+                last_err = None
+                for ns, bs in attempts:
+                    try:
+                        train_loader, val_loader, test_loader = build_neighbor_loaders(ns, bs, use_neighbor=True)
+                        last_err = None
+                        break
+                    except torch.cuda.OutOfMemoryError as e:
+                        last_err = e
+                        if torch.cuda.is_available():
+                            torch.cuda.empty_cache()
+                        continue
+                if last_err is not None:
+                    raise last_err
             else:
                 train_loader = val_loader = test_loader = data
             val_acc, _, model = train.run_training_session(

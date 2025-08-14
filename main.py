@@ -4,7 +4,6 @@ import json
 import os
 import torch
 from torch_geometric.loader import NeighborLoader
-from simple_sampler import SimpleNeighborLoader
 
 import data_loader
 import models
@@ -80,7 +79,10 @@ def main():
     # --- Data Loading ---
     data, feat_dim, num_classes = data_loader.load_dataset(name=args.dataset, root="simple_data")
     data = data_loader.apply_smote(data)
-    data = data.to(device)
+    # Keep full graph on CPU for sampled training (e.g., Reddit) to avoid GPU OOM in NeighborLoader init
+    is_sampled_dataset = args.dataset == "Reddit"
+    if not is_sampled_dataset:
+        data = data.to(device)
 
     # --- Model Initialization ---
     model_name = args.model.lower()
@@ -183,8 +185,7 @@ def main():
                 deps_available = True
             except ImportError:
                 print(
-                    "Optional PyG extensions not available. "
-                    "Using slower SimpleNeighborLoader fallback."
+                    "Optional PyG extensions not available. Proceeding with NeighborLoader; performance may be reduced."
                 )
 
         if deps_available:
@@ -192,53 +193,150 @@ def main():
             neighbor_sizes = [15] * args.num_layers
             batch_size = 512
             args.accum_steps = 2  # accumulate gradients to mimic a larger batch
+            num_workers = 0 if os.name == 'nt' else 4
+            pin_memory = torch.cuda.is_available()
 
-            train_loader = NeighborLoader(
-                data,
-                num_neighbors=neighbor_sizes,
-                batch_size=batch_size,
-                input_nodes=data.train_mask,
-                shuffle=True,
-                num_workers=4,
-            )
-            val_loader = NeighborLoader(
-                data,
-                num_neighbors=neighbor_sizes,
-                batch_size=batch_size,
-                input_nodes=data.val_mask,
-                num_workers=4,
-            )
-            test_loader = NeighborLoader(
-                data,
-                num_neighbors=neighbor_sizes,
-                batch_size=batch_size,
-                input_nodes=data.test_mask,
-                num_workers=4,
-            )
+            def build_neighbor_loaders(ns, bs):
+                tl = NeighborLoader(
+                    data,
+                    num_neighbors=ns,
+                    batch_size=bs,
+                    input_nodes=data.train_mask,
+                    shuffle=True,
+                    num_workers=num_workers,
+                    pin_memory=pin_memory,
+                    persistent_workers=(num_workers > 0),
+                )
+                vl = NeighborLoader(
+                    data,
+                    num_neighbors=ns,
+                    batch_size=bs,
+                    input_nodes=data.val_mask,
+                    num_workers=num_workers,
+                    pin_memory=pin_memory,
+                    persistent_workers=(num_workers > 0),
+                )
+                te = NeighborLoader(
+                    data,
+                    num_neighbors=ns,
+                    batch_size=bs,
+                    input_nodes=data.test_mask,
+                    num_workers=num_workers,
+                    pin_memory=pin_memory,
+                    persistent_workers=(num_workers > 0),
+                )
+                return tl, vl, te
+
+            # GPU-aware attempts based on available memory
+            free_gb = None
+            if torch.cuda.is_available():
+                try:
+                    free_bytes = torch.cuda.mem_get_info()[0]
+                    free_gb = free_bytes / (1024**3)
+                except Exception:
+                    free_gb = None
+
+            if free_gb is not None and free_gb < 2.0:
+                neighbor_sizes = [5] * args.num_layers
+                batch_size = 128
+            elif free_gb is not None and free_gb < 4.0:
+                neighbor_sizes = [10] * args.num_layers
+                batch_size = 256
+            else:
+                neighbor_sizes = [15] * args.num_layers
+                batch_size = 512
+
+            attempts = [
+                (neighbor_sizes, batch_size),
+                ([10] * args.num_layers, 256),
+                ([5] * args.num_layers, 128),
+                ([3] * args.num_layers, 64),
+                ([2] * args.num_layers, 32),
+            ]
+            last_err = None
+            for ns, bs in attempts:
+                try:
+                    train_loader, val_loader, test_loader = build_neighbor_loaders(ns, bs)
+                    last_err = None
+                    break
+                except torch.cuda.OutOfMemoryError as e:
+                    last_err = e
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                    continue
+            if last_err is not None:
+                raise last_err
         else:
-            neighbor_sizes = [15] * args.num_layers
-            batch_size = 512
-            args.accum_steps = 2
-            train_loader = SimpleNeighborLoader(
-                data,
-                num_neighbors=neighbor_sizes,
-                batch_size=batch_size,
-                input_nodes=data.train_mask,
-            )
-            val_loader = SimpleNeighborLoader(
-                data,
-                num_neighbors=neighbor_sizes,
-                batch_size=batch_size,
-                input_nodes=data.val_mask,
-                shuffle=False,
-            )
-            test_loader = SimpleNeighborLoader(
-                data,
-                num_neighbors=neighbor_sizes,
-                batch_size=batch_size,
-                input_nodes=data.test_mask,
-                shuffle=False,
-            )
+            print("Proceeding without optional PyG extensions; using NeighborLoader with conservative settings.")
+            num_workers = 0 if os.name == 'nt' else 4
+            pin_memory = torch.cuda.is_available()
+            def build_neighbor_loaders(ns, bs):
+                tl = NeighborLoader(
+                    data,
+                    num_neighbors=ns,
+                    batch_size=bs,
+                    input_nodes=data.train_mask,
+                    shuffle=True,
+                    num_workers=num_workers,
+                    pin_memory=pin_memory,
+                    persistent_workers=(num_workers > 0),
+                )
+                vl = NeighborLoader(
+                    data,
+                    num_neighbors=ns,
+                    batch_size=bs,
+                    input_nodes=data.val_mask,
+                    num_workers=num_workers,
+                    pin_memory=pin_memory,
+                    persistent_workers=(num_workers > 0),
+                )
+                te = NeighborLoader(
+                    data,
+                    num_neighbors=ns,
+                    batch_size=bs,
+                    input_nodes=data.test_mask,
+                    num_workers=num_workers,
+                    pin_memory=pin_memory,
+                    persistent_workers=(num_workers > 0),
+                )
+                return tl, vl, te
+            # GPU-aware attempts based on available memory
+            free_gb = None
+            if torch.cuda.is_available():
+                try:
+                    free_bytes = torch.cuda.mem_get_info()[0]
+                    free_gb = free_bytes / (1024**3)
+                except Exception:
+                    free_gb = None
+            if free_gb is not None and free_gb < 2.0:
+                neighbor_sizes = [5] * args.num_layers
+                batch_size = 128
+            elif free_gb is not None and free_gb < 4.0:
+                neighbor_sizes = [10] * args.num_layers
+                batch_size = 256
+            else:
+                neighbor_sizes = [15] * args.num_layers
+                batch_size = 512
+            attempts = [
+                (neighbor_sizes, batch_size),
+                ([10] * args.num_layers, 256),
+                ([5] * args.num_layers, 128),
+                ([3] * args.num_layers, 64),
+                ([2] * args.num_layers, 32),
+            ]
+            last_err = None
+            for ns, bs in attempts:
+                try:
+                    train_loader, val_loader, test_loader = build_neighbor_loaders(ns, bs)
+                    last_err = None
+                    break
+                except torch.cuda.OutOfMemoryError as e:
+                    last_err = e
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                    continue
+            if last_err is not None:
+                raise last_err
 
     if not is_sampled:
         train_loader = val_loader = test_loader = data
@@ -335,56 +433,76 @@ def main():
                 neighbor_sizes = [15] * args.num_layers
                 batch_size = 512
                 args.accum_steps = 2
-                try:
-                    from torch_geometric.loader import NeighborLoader as _NL  # reuse if available
-                    part_train_loader = _NL(
+                # Build NeighborLoaders with GPU-aware settings
+                num_workers = 0 if os.name == 'nt' else 4
+                pin_memory = torch.cuda.is_available()
+                def build_part_neighbor_loaders(ns, bs):
+                    tl = NeighborLoader(
                         part_data,
-                        num_neighbors=neighbor_sizes,
-                        batch_size=batch_size,
+                        num_neighbors=ns,
+                        batch_size=bs,
                         input_nodes=part_data.train_mask,
                         shuffle=True,
-                        num_workers=4,
+                        num_workers=num_workers,
+                        pin_memory=pin_memory,
+                        persistent_workers=(num_workers > 0),
                     )
-                    part_val_loader = _NL(
+                    vl = NeighborLoader(
                         part_data,
-                        num_neighbors=neighbor_sizes,
-                        batch_size=batch_size,
+                        num_neighbors=ns,
+                        batch_size=bs,
                         input_nodes=part_data.val_mask,
-                        num_workers=4,
+                        num_workers=num_workers,
+                        pin_memory=pin_memory,
+                        persistent_workers=(num_workers > 0),
                     )
-                    part_test_loader = _NL(
+                    te = NeighborLoader(
                         part_data,
-                        num_neighbors=neighbor_sizes,
-                        batch_size=batch_size,
+                        num_neighbors=ns,
+                        batch_size=bs,
                         input_nodes=part_data.test_mask,
-                        num_workers=4,
+                        num_workers=num_workers,
+                        pin_memory=pin_memory,
+                        persistent_workers=(num_workers > 0),
                     )
-                except Exception:
-                    # Fallback to simple sampler
-                    from simple_sampler import SimpleNeighborLoader as _SNL
+                    return tl, vl, te
+                # Determine initial sizes based on free GPU memory
+                free_gb = None
+                if torch.cuda.is_available():
+                    try:
+                        free_bytes = torch.cuda.mem_get_info()[0]
+                        free_gb = free_bytes / (1024**3)
+                    except Exception:
+                        free_gb = None
+                if free_gb is not None and free_gb < 2.0:
+                    neighbor_sizes = [5] * args.num_layers
+                    batch_size = 128
+                elif free_gb is not None and free_gb < 4.0:
+                    neighbor_sizes = [10] * args.num_layers
+                    batch_size = 256
+                else:
                     neighbor_sizes = [15] * args.num_layers
                     batch_size = 512
-                    args.accum_steps = 2
-                    part_train_loader = _SNL(
-                        part_data,
-                        num_neighbors=neighbor_sizes,
-                        batch_size=batch_size,
-                        input_nodes=part_data.train_mask,
-                    )
-                    part_val_loader = _SNL(
-                        part_data,
-                        num_neighbors=neighbor_sizes,
-                        batch_size=batch_size,
-                        input_nodes=part_data.val_mask,
-                        shuffle=False,
-                    )
-                    part_test_loader = _SNL(
-                        part_data,
-                        num_neighbors=neighbor_sizes,
-                        batch_size=batch_size,
-                        input_nodes=part_data.test_mask,
-                        shuffle=False,
-                    )
+                attempts = [
+                    (neighbor_sizes, batch_size),
+                    ([10] * args.num_layers, 256),
+                    ([5] * args.num_layers, 128),
+                    ([3] * args.num_layers, 64),
+                    ([2] * args.num_layers, 32),
+                ]
+                last_err = None
+                for ns, bs in attempts:
+                    try:
+                        part_train_loader, part_val_loader, part_test_loader = build_part_neighbor_loaders(ns, bs)
+                        last_err = None
+                        break
+                    except torch.cuda.OutOfMemoryError as e:
+                        last_err = e
+                        if torch.cuda.is_available():
+                            torch.cuda.empty_cache()
+                        continue
+                if last_err is not None:
+                    raise last_err
             else:
                 part_train_loader = part_val_loader = part_test_loader = part_data
 

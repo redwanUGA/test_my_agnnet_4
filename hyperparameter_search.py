@@ -168,7 +168,10 @@ def create_model(model_name, feat_dim, num_classes, args):
     if name == "tgat":
         return models.TGAT(feat_dim, args.hidden_channels, num_classes, heads=args.heads, num_layers=args.num_layers, dropout=args.dropout, time_dim=args.time_dim)
     if name == "tgn":
-        return models.TGN(feat_dim, args.mem, 1, num_classes, heads=args.heads)
+        # Use the correct number of nodes for TGN memory initialization
+        if not hasattr(args, "num_nodes"):
+            raise ValueError("args.num_nodes must be set for TGN model creation")
+        return models.TGN(args.num_nodes, args.mem, 1, num_classes, heads=args.heads)
     if name == "agnnet":
         return models.AGNNet(feat_dim, args.hidden_channels, num_classes, tau=args.tau, k=args.k, dropout=args.dropout)
     raise ValueError(f"Unknown model {model_name}")
@@ -211,6 +214,8 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
         data, feat_dim, num_classes = data_loader.load_dataset(name=dataset, root="simple_data")
         data = data_loader.apply_smote(data)
         data = data.to(device)
+        # Provide num_nodes to args for correct TGN initialization
+        setattr(args, "num_nodes", data.num_nodes)
         model = create_model(model_name, feat_dim, num_classes, args).to(device)
 
         is_sampled = dataset == "Reddit"

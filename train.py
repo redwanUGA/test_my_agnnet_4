@@ -70,15 +70,10 @@ def train_epoch_sampled(model, loader, optimizer):
 
         labels = batch.y[batch.train_mask].view(-1)
 
-        # Conditional logits indexing based on model type
-        if isinstance(model, (AGNNet, TGN)):
-            # These models output predictions for all nodes in the graph
-            # We need to use batch.n_id to select predictions relevant to the current batch
-            logits = out[batch.n_id][batch.train_mask]
-        else:
-            # Models like BaselineGCN, GraphSAGE, TGAT output predictions
-            # only for the nodes in the current batch
-            logits = out[batch.train_mask]
+        # For sampled batches, model outputs correspond to batch.x ordering
+        # So we select logits using the batch-local train_mask
+        assert out.size(0) == batch.x.size(0), f"Output size {out.size()} does not match batch.x {batch.x.size()}."
+        logits = out[batch.train_mask]
 
 
         # 🔍 Check for invalid label indices
@@ -117,11 +112,9 @@ def evaluate_sampled(model, loader):
 
         pred = out.argmax(dim=-1)
 
-        # Adjust pred indexing based on model type for evaluation
-        if isinstance(model, (AGNNet, TGN)):
-            pred_for_batch = pred[batch.n_id]
-        else:
-            pred_for_batch = pred
+        # For sampled batches, predictions are aligned with batch.x order
+        assert out.size(0) == batch.x.size(0), f"Output size {out.size()} does not match batch.x {batch.x.size()}."
+        pred_for_batch = pred
 
         for i, mask in enumerate([batch.train_mask, batch.val_mask, batch.test_mask]):
             total_correct[i] += (pred_for_batch[mask] == batch.y[mask].view(-1)).sum().item()

@@ -60,7 +60,7 @@ for model in "${models[@]}"; do
 
     if [ ! -f "$model_file" ] || [ ! -f "$config_file" ]; then
       echo "[$(date +'%F %T')] Hyperparameter search for model=$model dataset=$dataset"
-      python hyperparameter_search.py \
+      python3 hyperparameter_search.py \
         --model "$model" \
         --dataset "$dataset" \
         --epochs "$SEARCH_EPOCHS" \

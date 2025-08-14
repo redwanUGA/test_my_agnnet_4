@@ -42,8 +42,9 @@ fi
 # -----------------------
 # 2) Experiment settings
 # -----------------------
-SEARCH_EPOCHS="${SEARCH_EPOCHS:-1}"
-EPOCHS="${EPOCHS:-2}"
+# Default epochs (ensure at least 20)
+SEARCH_EPOCHS="${SEARCH_EPOCHS:-20}"
+EPOCHS="${EPOCHS:-20}"
 SAVE_DIR="saved_models"
 mkdir -p "$SAVE_DIR"
 

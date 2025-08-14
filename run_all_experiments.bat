@@ -23,8 +23,9 @@ if not exist "simple_data" (
 REM -----------------------
 REM 2) Experiment settings
 REM -----------------------
-if "%SEARCH_EPOCHS%"=="" set "SEARCH_EPOCHS=1"
-if "%EPOCHS%"=="" set "EPOCHS=2"
+REM Default epochs (ensure at least 20)
+if "%SEARCH_EPOCHS%"=="" set "SEARCH_EPOCHS=20"
+if "%EPOCHS%"=="" set "EPOCHS=20"
 set "SAVE_DIR=saved_models"
 if not exist "%SAVE_DIR%" mkdir "%SAVE_DIR%"
 

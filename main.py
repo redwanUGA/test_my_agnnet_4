@@ -132,8 +132,32 @@ def main():
         raise ValueError(f"Model '{args.model}' not implemented")
 
     if args.load_model and os.path.exists(args.load_model):
-        state_dict = torch.load(args.load_model, map_location=device)
-        model.load_state_dict(state_dict)
+        state_dict = torch.load(args.load_model, map_location=device, weights_only=True)
+        # Safely load checkpoint: skip node-dependent memory tensors if shape mismatches
+        model_state = model.state_dict()
+        filtered = {}
+        skipped = []
+        for k, v in state_dict.items():
+            if k in model_state:
+                tgt = model_state[k]
+                if v.shape == tgt.shape:
+                    filtered[k] = v
+                else:
+                    # For TGN, memory.* tensors depend on num_nodes; skip mismatched ones
+                    if k.startswith("memory."):
+                        skipped.append((k, tuple(v.shape), tuple(tgt.shape)))
+                        continue
+                    else:
+                        # Keep other mismatched keys out to avoid RuntimeError
+                        skipped.append((k, tuple(v.shape), tuple(tgt.shape)))
+                        continue
+            # Ignore keys not present in current model
+        if skipped:
+            print("Warning: Skipping mismatched keys during checkpoint load:")
+            for k, src_shape, tgt_shape in skipped:
+                print(f"  - {k}: checkpoint {src_shape} -> model {tgt_shape}")
+        # Load with strict=False to tolerate missing keys
+        model.load_state_dict(filtered, strict=False)
 
     model = model.to(device)
 

@@ -224,6 +224,7 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
             parts = data_loader.partition_graph(data, num_parts)
             val_accs = []
             test_accs = []
+            last_state = None
             for i, part in enumerate(parts, start=1):
                 # Create a fresh model sized to the partition
                 part_args = argparse.Namespace(**vars(args))
@@ -246,6 +247,12 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
                 val_accs.append(val_acc)
                 test_accs.append(test_acc)
 
+                # Save last trained model's state before cleanup
+                try:
+                    last_state = model.state_dict()
+                except Exception:
+                    last_state = None
+
                 # Proactively clear CUDA cache between partitions
                 del model
                 if torch.cuda.is_available():
@@ -257,7 +264,7 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
 
             # For search, select by averaged validation accuracy; keep last model state as placeholder
             val_acc = avg_val
-            best_candidate_state = model.state_dict() if len(parts) > 0 else None
+            best_candidate_state = last_state if len(parts) > 0 else None
         else:
             # Non-partitioned path (original behavior)
             # Provide num_nodes to args for correct TGN initialization

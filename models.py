@@ -115,20 +115,33 @@ class TGN(nn.Module):
         self.classifier = nn.Linear(memory_dim * heads, out_channels)
 
     def forward(self, data):
+        # Edge indices in sampled batches are local to the subgraph. Map to global IDs if available.
         src, dst = data.edge_index
+        n_id = getattr(data, 'n_id', None)
+        if n_id is not None:
+            src_global = n_id[src]
+            dst_global = n_id[dst]
+            node_ids_for_conv = n_id  # local node order corresponds to batch.x
+        else:
+            # Full-batch: indices are already global and node order is all nodes
+            src_global, dst_global = src, dst
+            node_ids_for_conv = torch.arange(self.memory.num_nodes, device=src.device)
+
+        # Edge features and timestamps (optional in batches)
         timestamps = getattr(data, 'edge_time', torch.zeros(src.size(0), device=src.device))
         edge_attr = getattr(data, 'edge_attr', None)
         if edge_attr is None:
             edge_attr = torch.zeros((src.size(0), 1), device=src.device)
 
-        src_mem = self.memory(src)
-        dst_mem = self.memory(dst)
+        # Build messages using global memory states, then update destination node memories
+        src_mem = self.memory(src_global)
+        dst_mem = self.memory(dst_global)
         messages = self.message_module(src_mem, dst_mem, edge_attr)
-        self.memory.update(dst, messages, timestamps)
+        self.memory.update(dst_global, messages, timestamps)
 
-        all_node_ids = torch.arange(self.memory.num_nodes, device=src.device)
-        full_node_mem = self.memory(all_node_ids)
-        z = self.conv(full_node_mem, data.edge_index)
+        # Convolution and classification over the current (sub)graph node set only
+        node_mem = self.memory(node_ids_for_conv)
+        z = self.conv(node_mem, data.edge_index)
         return self.classifier(z)
 
 

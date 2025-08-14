@@ -1,8 +1,10 @@
+import os
 import torch
 import torch.nn.functional as F
 from tqdm import tqdm
 # Ensure TGN is imported from models for isinstance checks
 from models import AGNNet, TGN
+from data_loader import partition_graph
 
 
 def train_epoch_full(model, data, optimizer):
@@ -125,54 +127,135 @@ def evaluate_sampled(model, loader):
 
 
 
+def _print_cuda_mem(prefix: str = ""):
+    if torch.cuda.is_available():
+        try:
+            free, total = torch.cuda.mem_get_info()
+            free_gb = free / (1024**3)
+            total_gb = total / (1024**3)
+            print(f"{prefix}GPU Mem: free={free_gb:.2f} GiB / total={total_gb:.2f} GiB")
+        except Exception:
+            pass
+
+
+def _train_epoch_partitions(model, data, optimizer, num_parts):
+    parts = partition_graph(data, num_parts)
+    total_loss = 0.0
+    for i, part in enumerate(parts, start=1):
+        print(f"[Partition {i}/{len(parts)}] nodes={part.num_nodes}, edges={part.edge_index.size(1)} -> training...")
+        loss = train_epoch_full(model, part, optimizer)
+        total_loss += loss
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+    return total_loss / max(len(parts), 1)
+
+
+@torch.no_grad()
+def _evaluate_on_partitions(model, data, num_parts):
+    model.eval()
+    parts = partition_graph(data, num_parts)
+    # accumulate correct/total across partitions for train/val/test
+    totals = [0, 0, 0]
+    corrects = [0, 0, 0]
+    for i, part in enumerate(parts, start=1):
+        print(f"[Partition {i}/{len(parts)}] evaluating...")
+        if isinstance(model, AGNNet):
+            out = model(part.x, part.edge_index, edge_weight=None)
+        else:
+            out = model(part)
+        pred = out.argmax(dim=1)
+        masks = [part.train_mask, part.val_mask, part.test_mask]
+        ys = part.y
+        for idx, m in enumerate(masks):
+            if m is None:
+                continue
+            total = m.sum().item()
+            if total == 0:
+                continue
+            corr = (pred[m] == ys[m].view(-1)).sum().item()
+            totals[idx] += total
+            corrects[idx] += corr
+    accs = [ (corrects[i] / totals[i]) if totals[i] > 0 else 0 for i in range(3) ]
+    return accs  # [train_acc, val_acc, test_acc]
+
+
 def run_training_session(
         model, data, train_loader, val_loader, test_loader,
         is_sampled, device, args
 ):
     """
-    Orchestrates the full training and evaluation process.
-
-    Args:
-        model (torch.nn.Module): The GNN model to train.
-        data (Data): The full dataset graph (used for full-batch).
-        train_loader (DataLoader): Loader for training data.
-        val_loader (DataLoader): Loader for validation data.
-        test_loader (DataLoader): Loader for testing data (for full-batch, this is `data`).
-        is_sampled (bool): Flag indicating if mini-batching is used.
-        device (torch.device): The device to run on.
-        args (argparse.Namespace): Command-line arguments.
+    Orchestrates the full training and evaluation process with CUDA OOM fallback.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     best_val_acc = 0
     best_test_acc = 0
 
-    print(f"\n--- Training {args.model} on {args.dataset} for {args.epochs} epochs ---")
+    print(f"\n=== Training {args.model} on {args.dataset} for {args.epochs} epochs ===")
+
+    # Partition fallback state
+    partition_enabled = False
+    chosen_parts = None
 
     for epoch in range(1, args.epochs + 1):
+        print(f"\n--- Epoch {epoch}/{args.epochs} ---")
         if is_sampled:
-            # Removed 'accum_steps' from the call, as train_epoch_sampled doesn't take it
             loss = train_epoch_sampled(model, train_loader, optimizer)
-            # Unpack the list returned by evaluate_sampled to get val_acc
             _, val_acc, _ = evaluate_sampled(model, val_loader)
-            test_acc = -1  # Skip test eval for now
+            test_acc = -1
         else:
-            loss = train_epoch_full(model, data, optimizer)
-            train_acc, val_acc, test_acc = evaluate_full(model, data)
+            try:
+                if not partition_enabled:
+                    loss = train_epoch_full(model, data, optimizer)
+                    train_acc, val_acc, test_acc = evaluate_full(model, data)
+                else:
+                    print(f"[OOM-Fallback ACTIVE] Training with {chosen_parts} partitions")
+                    loss = _train_epoch_partitions(model, data, optimizer, chosen_parts)
+                    train_acc, val_acc, test_acc = _evaluate_on_partitions(model, data, chosen_parts)
+            except torch.cuda.OutOfMemoryError as e:
+                print("!!! CUDA OutOfMemoryError detected during full-batch training !!!")
+                print(str(e))
+                _print_cuda_mem(prefix="[Before fallback] ")
+                print("Tip: You can also set PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to reduce fragmentation.")
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                # Try increasing number of partitions until it fits
+                attempt_parts = [2, 4, 8, 16, 32]
+                success = False
+                for nparts in attempt_parts:
+                    try:
+                        print(f"--> Trying partitioned training with {nparts} parts")
+                        loss = _train_epoch_partitions(model, data, optimizer, nparts)
+                        train_acc, val_acc, test_acc = _evaluate_on_partitions(model, data, nparts)
+                        chosen_parts = nparts
+                        partition_enabled = True
+                        success = True
+                        print(f"--> Fallback succeeded with {nparts} parts. Will use this setting for remaining epochs.")
+                        break
+                    except torch.cuda.OutOfMemoryError as e2:
+                        print(f"XX Still OOM with {nparts} parts. Increasing partitions...")
+                        print(str(e2))
+                        if torch.cuda.is_available():
+                            torch.cuda.empty_cache()
+                        continue
+                if not success:
+                    raise RuntimeError("Failed to recover from CUDA OOM even after partitioning")
 
         if val_acc > best_val_acc:
             best_val_acc = val_acc
             if not is_sampled:
                 best_test_acc = test_acc
-            # Optionally: torch.save(model.state_dict(), f'{args.model}_{args.dataset}_best.pt')
 
         test_acc_str = f"{test_acc:.4f}" if test_acc != -1 else "N/A"
-        print(f"Epoch {epoch:02d} | Loss: {loss:.4f} | Val Acc: {val_acc:.4f} | Test Acc: {test_acc_str}")
+        part_info = f" | Partitions: {chosen_parts}" if partition_enabled else ""
+        print(f"Epoch {epoch:02d} | Loss: {loss:.4f} | Val Acc: {val_acc:.4f} | Test Acc: {test_acc_str}{part_info}")
 
-    print("\n--- Training Complete ---")
+    print("\n=== Training Complete ===")
     if is_sampled:
         print(f"-> Best Val Acc for {args.dataset}: {best_val_acc:.4f}")
         print("   (To get final test accuracy, load best model and run on a test loader)")
     else:
         print(f"-> Best Val Acc for {args.dataset}: {best_val_acc:.4f}, Test Acc @ Best Val: {best_test_acc:.4f}")
+        if partition_enabled:
+            print(f"   OOM-fallback was active with {chosen_parts} partitions.")
 
     return best_val_acc, best_test_acc, model

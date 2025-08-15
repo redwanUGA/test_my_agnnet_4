@@ -11,6 +11,9 @@ def train_epoch_full(model, data, optimizer):
     model.train()
     optimizer.zero_grad()
 
+    # Ensure data is on the same device as the model
+    data = data.to(next(model.parameters()).device)
+
     if isinstance(model, AGNNet):
         out = model(data.x, data.edge_index, edge_weight=None)
     else:
@@ -35,6 +38,9 @@ def train_epoch_full(model, data, optimizer):
 @torch.no_grad()
 def evaluate_full(model, data):
     model.eval()
+
+    # Ensure data is on the same device as the model
+    data = data.to(next(model.parameters()).device)
 
     if isinstance(model, AGNNet):
         out = model(data.x, data.edge_index, edge_weight=None)
@@ -141,10 +147,15 @@ def _print_cuda_mem(prefix: str = ""):
 def _train_epoch_partitions(model, data, optimizer, num_parts):
     parts = partition_graph(data, num_parts)
     total_loss = 0.0
+    device = next(model.parameters()).device
     for i, part in enumerate(parts, start=1):
         print(f"[Partition {i}/{len(parts)}] nodes={part.num_nodes}, edges={part.edge_index.size(1)} -> training...")
+        # move only the current partition to GPU
+        part = part.to(device)
         loss = train_epoch_full(model, part, optimizer)
         total_loss += loss
+        # free partition tensors explicitly
+        del part
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
     return total_loss / max(len(parts), 1)
@@ -154,11 +165,13 @@ def _train_epoch_partitions(model, data, optimizer, num_parts):
 def _evaluate_on_partitions(model, data, num_parts):
     model.eval()
     parts = partition_graph(data, num_parts)
+    device = next(model.parameters()).device
     # accumulate correct/total across partitions for train/val/test
     totals = [0, 0, 0]
     corrects = [0, 0, 0]
     for i, part in enumerate(parts, start=1):
         print(f"[Partition {i}/{len(parts)}] evaluating...")
+        part = part.to(device)
         if isinstance(model, AGNNet):
             out = model(part.x, part.edge_index, edge_weight=None)
         else:
@@ -175,6 +188,10 @@ def _evaluate_on_partitions(model, data, num_parts):
             corr = (pred[m] == ys[m].view(-1)).sum().item()
             totals[idx] += total
             corrects[idx] += corr
+        # free tensors before next partition
+        del part, out, pred
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
     accs = [ (corrects[i] / totals[i]) if totals[i] > 0 else 0 for i in range(3) ]
     return accs  # [train_acc, val_acc, test_acc]
 

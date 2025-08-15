@@ -169,7 +169,9 @@ def partition_graph(data: Data, num_parts: int) -> List[Data]:
     if num_parts <= 1:
         return [data]
 
-    device = data.x.device
+    # Build partitions on CPU to minimize GPU memory usage
+    data = data.cpu()
+    device = torch.device('cpu')
     N = data.num_nodes
 
     # Helper: split indices of a mask evenly into num_parts

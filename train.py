@@ -76,19 +76,24 @@ def train_epoch_sampled(model, loader, optimizer):
         else:
             out = model(batch)
 
-        labels = batch.y[batch.train_mask].view(-1)
-
-        # For sampled batches, model outputs correspond to batch.x ordering
-        # So we select logits using the batch-local train_mask
+        # Use only seed nodes (first batch.batch_size) for supervision in sampled training
         assert out.size(0) == batch.x.size(0), f"Output size {out.size()} does not match batch.x {batch.x.size()}."
-        logits = out[batch.train_mask]
+        seed_size = int(getattr(batch, "batch_size", 0))
+        if seed_size <= 0 or seed_size > out.size(0):
+            # Fallback: try to infer from train_mask if available
+            if hasattr(batch, "train_mask") and isinstance(batch.train_mask, torch.Tensor) and batch.train_mask.dtype == torch.bool:
+                seed_size = int(batch.train_mask.sum().item())
+            else:
+                seed_size = out.size(0)
+        logits = out[:seed_size]
+        labels = batch.y[:seed_size].view(-1).long()
 
-
-        # 🔍 Check for invalid label indices
-        if labels.max() >= logits.size(1) or labels.min() < 0:
-            print(f"❌ Invalid label values detected. Label range: [{labels.min()} - {labels.max()}], Expected: [0 - {logits.size(1) - 1}]")
-            print(f"Logits shape: {logits.shape}")
-            raise ValueError("CrossEntropy target contains invalid class index.")
+        # 🔍 Check for invalid label indices on the seed slice
+        if labels.numel() > 0:
+            if labels.max() >= logits.size(1) or labels.min() < 0:
+                print(f"❌ Invalid label values detected. Label range: [{labels.min()} - {labels.max()}], Expected: [0 - {logits.size(1) - 1}]")
+                print(f"Logits shape: {logits.shape}")
+                raise ValueError("CrossEntropy target contains invalid class index.")
 
         loss = F.cross_entropy(logits, labels)
         loss.backward()
@@ -120,13 +125,29 @@ def evaluate_sampled(model, loader):
 
         pred = out.argmax(dim=-1)
 
-        # For sampled batches, predictions are aligned with batch.x order
+        # For sampled batches, only the first `batch_size` nodes are the seeds to evaluate
         assert out.size(0) == batch.x.size(0), f"Output size {out.size()} does not match batch.x {batch.x.size()}."
-        pred_for_batch = pred
+        seed_size = int(getattr(batch, "batch_size", 0))
+        if seed_size <= 0 or seed_size > pred.size(0):
+            # Fallback: if masks exist, approximate using any available boolean mask count
+            for m in [getattr(batch, 'train_mask', None), getattr(batch, 'val_mask', None), getattr(batch, 'test_mask', None)]:
+                if isinstance(m, torch.Tensor) and m.dtype == torch.bool and m.numel() == pred.numel():
+                    seed_size = int(m.sum().item())
+                    break
+            if seed_size <= 0 or seed_size > pred.size(0):
+                seed_size = pred.size(0)
 
-        for i, mask in enumerate([batch.train_mask, batch.val_mask, batch.test_mask]):
-            total_correct[i] += (pred_for_batch[mask] == batch.y[mask].view(-1)).sum().item()
-            total[i] += mask.sum().item()
+        pred_seeds = pred[:seed_size]
+        y_seeds = batch.y[:seed_size].view(-1)
+
+        # Accumulate accuracy per-split restricted to seed slice
+        masks = [getattr(batch, 'train_mask', None), getattr(batch, 'val_mask', None), getattr(batch, 'test_mask', None)]
+        for i, m in enumerate(masks):
+            if isinstance(m, torch.Tensor) and m.dtype == torch.bool:
+                seed_mask = m[:seed_size]
+                if seed_mask.numel() == seed_size and seed_mask.any():
+                    total_correct[i] += (pred_seeds[seed_mask] == y_seeds[seed_mask]).sum().item()
+                    total[i] += seed_mask.sum().item()
 
     accs = [c / t if t > 0 else 0 for c, t in zip(total_correct, total)]
     return accs

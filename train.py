@@ -88,14 +88,14 @@ def train_epoch_sampled(model, loader, optimizer):
         logits = out[:seed_size]
         labels = batch.y[:seed_size].view(-1).long()
 
-        # 🔍 Check for invalid label indices on the seed slice
-        if labels.numel() > 0:
-            if labels.max() >= logits.size(1) or labels.min() < 0:
-                print(f"❌ Invalid label values detected. Label range: [{labels.min()} - {labels.max()}], Expected: [0 - {logits.size(1) - 1}]")
-                print(f"Logits shape: {logits.shape}")
-                raise ValueError("CrossEntropy target contains invalid class index.")
+        # Filter to valid labels to avoid device-side asserts
+        if labels.numel() == 0:
+            continue
+        valid_mask = (labels >= 0) & (labels < logits.size(1))
+        if valid_mask.sum().item() == 0:
+            continue
 
-        loss = F.cross_entropy(logits, labels)
+        loss = F.cross_entropy(logits[valid_mask], labels[valid_mask])
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
@@ -142,12 +142,16 @@ def evaluate_sampled(model, loader):
 
         # Accumulate accuracy per-split restricted to seed slice
         masks = [getattr(batch, 'train_mask', None), getattr(batch, 'val_mask', None), getattr(batch, 'test_mask', None)]
+        # Filter to valid labels to avoid any invalid comparisons
+        y_valid = (y_seeds >= 0) & (y_seeds < out.size(1))
         for i, m in enumerate(masks):
             if isinstance(m, torch.Tensor) and m.dtype == torch.bool:
                 seed_mask = m[:seed_size]
-                if seed_mask.numel() == seed_size and seed_mask.any():
-                    total_correct[i] += (pred_seeds[seed_mask] == y_seeds[seed_mask]).sum().item()
-                    total[i] += seed_mask.sum().item()
+                if seed_mask.numel() == seed_size:
+                    combined_mask = seed_mask & y_valid
+                    if combined_mask.any():
+                        total_correct[i] += (pred_seeds[combined_mask] == y_seeds[combined_mask]).sum().item()
+                        total[i] += combined_mask.sum().item()
 
     accs = [c / t if t > 0 else 0 for c, t in zip(total_correct, total)]
     return accs

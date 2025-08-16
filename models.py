@@ -251,6 +251,10 @@ class AGNNet(nn.Module):
         # 🧠 Caching to avoid recomputing subgraph structure
         self.cached_sub_nodes = None
         self.cached_sub_edge_index = None
+        self.cached_mapped_edge_index = None
+        # Track graph signature to safely reuse cache only when graph is unchanged
+        self.cached_graph_num_nodes = None
+        self.cached_graph_num_edges = None
 
     def forward(self, x, edge_index, edge_weight=None, batch=None):
         num_nodes = x.size(0)
@@ -265,21 +269,24 @@ class AGNNet(nn.Module):
             dummy_alpha = torch.ones(edge_index.size(1), device=x.device)
             pi = self.aqua.compute_priority(x, self.x_prev, edge_index, self.wp.squeeze(), dummy_alpha)
 
-        # === Cache or compute subgraph ===
-        if self.cached_sub_nodes is None or self.training:
+        # === Cache or compute subgraph (safe across NeighborLoader batches) ===
+        graph_num_nodes = num_nodes
+        graph_num_edges = edge_index.size(1)
+        # Disable cross-batch caching under mini-batch sampling to avoid stale indices
+        # (safe for full-batch as well since recomputation is cheap compared to correctness)
+        must_recompute = True
+        if must_recompute:
             selected_nodes = self.aqua.select_subgraph(pi)
-            sub_nodes, sub_edge_index = self.aqua.local_neighbors(selected_nodes, edge_index, num_nodes=x.size(0))
+            sub_nodes, sub_edge_index = self.aqua.local_neighbors(selected_nodes, edge_index, num_nodes=num_nodes)
 
-            # Vectorized remapping using tensor indexing
-            mapping = torch.full((num_nodes,), -1, dtype=torch.long, device=x.device)
-            mapping[sub_nodes] = torch.arange(sub_nodes.size(0), device=x.device)
-            mapped_edge_index = mapping[sub_edge_index]
-            valid = (mapped_edge_index[0] >= 0) & (mapped_edge_index[1] >= 0)
-            mapped_edge_index = mapped_edge_index[:, valid]
+            # sub_edge_index from k_hop_subgraph is already relabeled (relabel_nodes=True)
+            mapped_edge_index = sub_edge_index
 
             self.cached_sub_nodes = sub_nodes
             self.cached_sub_edge_index = sub_edge_index
             self.cached_mapped_edge_index = mapped_edge_index
+            self.cached_graph_num_nodes = graph_num_nodes
+            self.cached_graph_num_edges = graph_num_edges
         else:
             sub_nodes = self.cached_sub_nodes
             mapped_edge_index = self.cached_mapped_edge_index

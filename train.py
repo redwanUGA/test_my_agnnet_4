@@ -4,17 +4,22 @@ import torch.nn.functional as F
 from tqdm import tqdm
 # Ensure TGN is imported from models for isinstance checks
 from models import AGNNet, TGN
+try:
+    from models_agn_net_only import AGNNet as AGNNetOverride
+except Exception:
+    AGNNetOverride = AGNNet
+AGN_TYPES = (AGNNet, AGNNetOverride)
 from data_loader import partition_graph
 
 
-def train_epoch_full(model, data, optimizer):
+def train_epoch_full(model, data, optimizer, args):
     model.train()
     optimizer.zero_grad()
 
     # Ensure data is on the same device as the model
     data = data.to(next(model.parameters()).device)
 
-    if isinstance(model, AGNNet):
+    if isinstance(model, AGN_TYPES):
         out = model(data.x, data.edge_index, edge_weight=None)
     else:
         out = model(data)
@@ -28,7 +33,7 @@ def train_epoch_full(model, data, optimizer):
         print(f"Logits shape: {logits.shape}")
         raise ValueError("CrossEntropy target contains invalid class index.")
 
-    loss = F.cross_entropy(logits, labels)
+    loss = F.cross_entropy(logits, labels, label_smoothing=getattr(args, 'label_smoothing', 0.0))
     loss.backward()
     optimizer.step()
     return loss.item()
@@ -58,7 +63,7 @@ def evaluate_full(model, data):
 
 
 
-def train_epoch_sampled(model, loader, optimizer):
+def train_epoch_sampled(model, loader, optimizer, args):
     model.train()
     total_loss = 0
 
@@ -66,7 +71,7 @@ def train_epoch_sampled(model, loader, optimizer):
         optimizer.zero_grad()
         batch = batch.to(next(model.parameters()).device)
 
-        if isinstance(model, AGNNet):
+        if isinstance(model, AGN_TYPES):
             out = model(
                 batch.x,
                 batch.edge_index,
@@ -95,7 +100,7 @@ def train_epoch_sampled(model, loader, optimizer):
         if valid_mask.sum().item() == 0:
             continue
 
-        loss = F.cross_entropy(logits[valid_mask], labels[valid_mask])
+        loss = F.cross_entropy(logits[valid_mask], labels[valid_mask], label_smoothing=getattr(args, 'label_smoothing', 0.0))
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
@@ -113,7 +118,7 @@ def evaluate_sampled(model, loader):
     for batch in loader:
         batch = batch.to(next(model.parameters()).device)
 
-        if isinstance(model, AGNNet):
+        if isinstance(model, AGN_TYPES):
             out = model(
                 batch.x,
                 batch.edge_index,
@@ -169,7 +174,7 @@ def _print_cuda_mem(prefix: str = ""):
             pass
 
 
-def _train_epoch_partitions(model, data, optimizer, num_parts):
+def _train_epoch_partitions(model, data, optimizer, num_parts, args):
     parts = partition_graph(data, num_parts)
     total_loss = 0.0
     device = next(model.parameters()).device
@@ -177,7 +182,7 @@ def _train_epoch_partitions(model, data, optimizer, num_parts):
         print(f"[Partition {i}/{len(parts)}] nodes={part.num_nodes}, edges={part.edge_index.size(1)} -> training...")
         # move only the current partition to GPU
         part = part.to(device)
-        loss = train_epoch_full(model, part, optimizer)
+        loss = train_epoch_full(model, part, optimizer, args)
         total_loss += loss
         # free partition tensors explicitly
         del part
@@ -197,7 +202,7 @@ def _evaluate_on_partitions(model, data, num_parts):
     for i, part in enumerate(parts, start=1):
         print(f"[Partition {i}/{len(parts)}] evaluating...")
         part = part.to(device)
-        if isinstance(model, AGNNet):
+        if isinstance(model, AGN_TYPES):
             out = model(part.x, part.edge_index, edge_weight=None)
         else:
             out = model(part)
@@ -228,7 +233,27 @@ def run_training_session(
     """
     Orchestrates the full training and evaluation process with CUDA OOM fallback.
     """
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    # Optimizer selection
+    if getattr(args, 'optimizer', 'adamw').lower() == 'adamw':
+        optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    else:
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+
+    # Cosine decay with warmup over epochs (attention-friendly)
+    scheduler = None
+    if getattr(args, 'lr_schedule', 'cosine') == 'cosine':
+        total_epochs = max(1, args.epochs)
+        warmup = max(0, int(getattr(args, 'warmup_epochs', 0)))
+        def lr_lambda(epoch_idx):
+            # epoch_idx starts from 0
+            if epoch_idx < warmup and warmup > 0:
+                return float(epoch_idx + 1) / float(warmup)
+            # cosine from warmup..total_epochs
+            progress = (epoch_idx - warmup) / max(1, (total_epochs - warmup))
+            return 0.5 * (1.0 + math.cos(math.pi * progress))
+        import math
+        scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
+
     best_val_acc = 0
     best_test_acc = 0
 
@@ -240,18 +265,32 @@ def run_training_session(
 
     for epoch in range(1, args.epochs + 1):
         print(f"\n--- Epoch {epoch}/{args.epochs} ---")
+        # allow AGNNet to anneal k over epochs
+        try:
+            from models_agn_net_only import AGNNet as AGNNetOverride
+        except Exception:
+            AGNNetOverride = AGNNet
+        if isinstance(model, (AGNNet, AGNNetOverride)) and hasattr(model, 'set_epoch'):
+            if getattr(args, 'k_anneal', False):
+                # enable annealing based on provided bounds
+                try:
+                    model.enable_k_annealing(k_min=getattr(args, 'k_min', 2), k_max=(args.k_max if args.k_max is not None else args.k), total_epochs=args.epochs)
+                except Exception:
+                    pass
+            model.set_epoch(epoch, total_epochs=args.epochs)
+
         if is_sampled:
-            loss = train_epoch_sampled(model, train_loader, optimizer)
+            loss = train_epoch_sampled(model, train_loader, optimizer, args)
             _, val_acc, _ = evaluate_sampled(model, val_loader)
             test_acc = -1
         else:
             try:
                 if not partition_enabled:
-                    loss = train_epoch_full(model, data, optimizer)
+                    loss = train_epoch_full(model, data, optimizer, args)
                     train_acc, val_acc, test_acc = evaluate_full(model, data)
                 else:
                     print(f"[OOM-Fallback ACTIVE] Training with {chosen_parts} partitions")
-                    loss = _train_epoch_partitions(model, data, optimizer, chosen_parts)
+                    loss = _train_epoch_partitions(model, data, optimizer, chosen_parts, args)
                     train_acc, val_acc, test_acc = _evaluate_on_partitions(model, data, chosen_parts)
             except torch.cuda.OutOfMemoryError as e:
                 print("!!! CUDA OutOfMemoryError detected during full-batch training !!!")
@@ -266,7 +305,7 @@ def run_training_session(
                 for nparts in attempt_parts:
                     try:
                         print(f"--> Trying partitioned training with {nparts} parts")
-                        loss = _train_epoch_partitions(model, data, optimizer, nparts)
+                        loss = _train_epoch_partitions(model, data, optimizer, nparts, args)
                         train_acc, val_acc, test_acc = _evaluate_on_partitions(model, data, nparts)
                         chosen_parts = nparts
                         partition_enabled = True
@@ -281,6 +320,9 @@ def run_training_session(
                         continue
                 if not success:
                     raise RuntimeError("Failed to recover from CUDA OOM even after partitioning")
+
+        if scheduler is not None:
+            scheduler.step()
 
         if val_acc > best_val_acc:
             best_val_acc = val_acc

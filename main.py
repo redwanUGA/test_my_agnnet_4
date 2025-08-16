@@ -51,10 +51,22 @@ def parse_args():
         "--mem", type=int, default=100, help="Memory dimension for TGN")
     parser.add_argument(
         "--encoder", type=int, default=64, help="Encoder dimension for TGN")
-    parser.add_argument(
-        "--tau", type=float, default=0.9, help="Threshold tau for AGNNet")
-    parser.add_argument(
-        "--k", type=int, default=2, help="k-hop value for AGNNet")
+    # AGNNet-specific knobs
+    parser.add_argument("--tau", type=float, default=0.9, help="Temperature/threshold tau for AGNNet")
+    parser.add_argument("--k", type=int, default=8, help="Neighborhood/Top-k cap for AGNNet")
+    parser.add_argument("--k-anneal", action="store_true", help="Enable annealing k over epochs for AGNNet")
+    parser.add_argument("--k-min", type=int, default=2, help="Minimum k for annealing")
+    parser.add_argument("--k-max", type=int, default=None, help="Maximum k for annealing (defaults to --k)")
+    parser.add_argument("--ffn-expansion", type=float, default=2.0, help="FFN expansion factor in AGN blocks")
+    parser.add_argument("--soft-topk", action="store_true", help="Use soft attention with top-k cap")
+    parser.add_argument("--edge-threshold", type=float, default=0.0, help="Keep edges with attention logits above this threshold before top-k cap")
+    parser.add_argument("--disable-pred-subgraph", action="store_true", help="Ablate predictive-subgraph selection (use full graph)")
+    parser.add_argument("--no-self-loops", action="store_true", help="Disable forced self-loops in AGNNet subgraph")
+    # Optimization knobs
+    parser.add_argument("--optimizer", type=str, default="adamw", choices=["adam", "adamw"], help="Optimizer choice")
+    parser.add_argument("--lr-schedule", type=str, default="cosine", choices=["none", "cosine"], help="LR scheduler")
+    parser.add_argument("--warmup-epochs", type=int, default=500, help="Warmup steps for cosine schedule (epochs)")
+    parser.add_argument("--label-smoothing", type=float, default=0.0, help="Label smoothing for CrossEntropyLoss")
     parser.add_argument(
         "--load-model", type=str, default=None, help="Path to model checkpoint")
     parser.add_argument(
@@ -128,13 +140,26 @@ def main():
             heads=args.heads,
         )
     elif model_name == "agnnet":
-        model = models.AGNNet(
+        # Prefer modified AGNNet from models_agn_net_only if available
+        try:
+            import importlib
+            agn_models = importlib.import_module("models_agn_net_only")
+            AGN = getattr(agn_models, "AGNNet")
+        except Exception:
+            AGN = getattr(models, "AGNNet")
+        model = AGN(
             feat_dim,
             args.hidden_channels,
             num_classes,
             tau=args.tau,
             k=args.k,
+            num_layers=args.num_layers,
             dropout=args.dropout,
+            ffn_expansion=args.ffn_expansion,
+            soft_topk=args.soft_topk,
+            edge_threshold=args.edge_threshold,
+            disable_pred_subgraph=args.disable_pred_subgraph,
+            add_self_loops=(not args.no_self_loops),
         )
     else:
         raise ValueError(f"Model '{args.model}' not implemented")

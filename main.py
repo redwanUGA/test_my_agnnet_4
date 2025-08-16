@@ -78,8 +78,12 @@ def main():
 
     # --- Data Loading ---
     data, feat_dim, num_classes = data_loader.load_dataset(name=args.dataset, root="simple_data")
-    data = data_loader.apply_smote(data)
-    # Keep full graph on CPU for sampled training (e.g., Reddit) to avoid GPU OOM in NeighborLoader init
+    # Avoid SMOTE for TGN or large graphs to prevent memory blow-up (e.g., TGN memory scales with num_nodes)
+    if args.model.lower() != "tgn" and getattr(data, 'num_nodes', 0) <= 200_000:
+        data = data_loader.apply_smote(data)
+    else:
+        print("Skipping SMOTE for this configuration to avoid memory blow-up.")
+    # Keep full graph on GPU unless sampled (e.g., Reddit) to avoid OOM in NeighborLoader init
     is_sampled_dataset = args.dataset == "Reddit"
     if not is_sampled_dataset:
         data = data.to(device)

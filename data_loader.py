@@ -249,6 +249,8 @@ def partition_graph(data: Data, num_parts: int) -> List[Data]:
         part_data.train_mask = part_train_mask
         part_data.val_mask = part_val_mask
         part_data.test_mask = part_test_mask
+        # Preserve mapping to global node indices for models that need it (e.g., TGN)
+        part_data.n_id = node_idx
         if new_edge_attr is not None:
             part_data.edge_attr = new_edge_attr
 

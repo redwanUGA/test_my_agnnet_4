@@ -76,7 +76,8 @@ class TGNMemory(nn.Module):
         super().__init__()
         self.num_nodes = num_nodes
         self.memory_dim = memory_dim
-        self.memory = nn.Parameter(torch.zeros(num_nodes, memory_dim), requires_grad=True)
+        # Memory state should not require gradients; it is updated via GRUCell and treated as state
+        self.memory = nn.Parameter(torch.zeros(num_nodes, memory_dim), requires_grad=False)
         self.last_update = nn.Parameter(torch.zeros(num_nodes), requires_grad=False)
         self.update_fn = nn.GRUCell(memory_dim, memory_dim)
 
@@ -123,9 +124,10 @@ class TGN(nn.Module):
             dst_global = n_id[dst]
             node_ids_for_conv = n_id  # local node order corresponds to batch.x
         else:
-            # Full-batch: indices are already global and node order is all nodes
+            # Full-batch or plain subgraph without explicit n_id: indices are already local to data
             src_global, dst_global = src, dst
-            node_ids_for_conv = torch.arange(self.memory.num_nodes, device=src.device)
+            # Use the current data.num_nodes to restrict computation to this (sub)graph
+            node_ids_for_conv = torch.arange(data.num_nodes, device=src.device)
 
         # Edge features and timestamps (optional in batches)
         timestamps = getattr(data, 'edge_time', torch.zeros(src.size(0), device=src.device))

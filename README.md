@@ -65,6 +65,46 @@ Notes:
 - For sampled datasets like Reddit, only validation accuracy is averaged (test accuracy is not computed in the sampled path, consistent with the existing pipeline).
 - For TGN or very large graphs the per-class SMOTE step is skipped to avoid memory blow-ups.
 
+## Ablation Study: AGNNet
+This repo includes a ready-to-run, reproducible ablation study for AGNNet that isolates the contribution of its main components. The ablation compares a baseline AGNNet configuration against targeted removals/toggles across all supported datasets.
+
+Key components under study:
+- Predictive subgraph selection (enable/disable with `--disable-pred-subgraph`).
+- k-annealing over epochs (enable with `--k-anneal` vs fixed k).
+- Soft top-k attention cap (toggle `--soft-topk`).
+- Forced self-loops for stability (`--no-self-loops` to ablate).
+- Edge thresholding in attention pre-filtering (`--edge-threshold`).
+
+Baseline configuration used by the scripts:
+- Hidden size: 128, Layers: 3, Dropout: 0.25
+- Optimizer: AdamW (lr=0.003, weight_decay=5e-4)
+- LR schedule: cosine with warmup=500 epochs
+- Label smoothing: 0.05
+- AGN params: tau=0.9, k=8, k-anneal enabled (k-min=2, k-max=8), soft-topk enabled, edge-threshold=0.0
+
+Ablation variants run:
+1) Baseline (all components enabled)
+2) No predictive subgraph selection (`--disable-pred-subgraph`)
+3) No k-annealing (fixed k)
+4) No soft top-k (hard cap only)
+5) No self-loops (`--no-self-loops`)
+6) No edge threshold (explicitly set `--edge-threshold 0.0`)
+
+How to run (Windows PowerShell/CMD):
+```bat
+run_ablation_agnnet.bat
+```
+On Unix-like systems:
+```bash
+bash run_ablation_agnnet.sh
+```
+
+Notes:
+- Both scripts run the ablations for: OGB-Arxiv, Reddit, TGB-Wiki, MOOC.
+- Logs are saved under `logs/` with a timestamped filename. Console output includes epoch-wise metrics and selected configuration for each run.
+- You can override the number of epochs by setting `EPOCHS` in your environment, e.g., `set EPOCHS=20` on Windows or `export EPOCHS=20` on Unix.
+- The scripts will attempt to download datasets to `simple_data/` if not found (using the same Google Drive folder referenced by DOWNLOAD_INSTRUCTIONS.md).
+
 ## Notes
 - The datasets are large and therefore not stored in this repository.
 - After downloading they reside in `simple_data/` and are loaded directly

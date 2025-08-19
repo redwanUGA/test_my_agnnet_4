@@ -8,6 +8,7 @@ from torch_geometric.loader import NeighborLoader
 import data_loader
 import models
 import train
+import ova_smote
 
 
 def parse_args():
@@ -73,7 +74,11 @@ def parse_args():
         "--config", type=str, default=None, help="JSON file with hyperparameters")
     parser.add_argument(
         "--num-parts", type=int, default=4, help="Number of partitions to use on OOM fallback")
+    # Metric/experiment mode
+    parser.add_argument(
+        "--ova-smote", action="store_true", help="Run One-vs-All experiments with per-class SMOTE and report average accuracy")
     return parser.parse_args()
+
 
 
 def main():
@@ -87,6 +92,10 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Initial setup on device: {device}")
     print(f"Configuration: {args}")
+
+    # If OVA-SMOTE is requested, run the special experiment path and exit
+    if getattr(args, 'ova_smote', False):
+        return ova_smote.run_ova_smote_experiments(args, device)
 
     # --- Data Loading ---
     data, feat_dim, num_classes = data_loader.load_dataset(name=args.dataset, root="simple_data")
@@ -140,14 +149,7 @@ def main():
             heads=args.heads,
         )
     elif model_name == "agnnet":
-        # Prefer modified AGNNet from models_agn_net_only if available
-        try:
-            import importlib
-            agn_models = importlib.import_module("models_agn_net_only")
-            AGN = getattr(agn_models, "AGNNet")
-        except Exception:
-            AGN = getattr(models, "AGNNet")
-        model = AGN(
+        model = models.AGNNet(
             feat_dim,
             args.hidden_channels,
             num_classes,

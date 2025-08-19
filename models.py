@@ -189,19 +189,21 @@ class TGAT(nn.Module):
 class PriorityWeightedConv(MessagePassing):
     def __init__(self, in_channels, out_channels):
         super().__init__(aggr='add')
-        self.linear = nn.Linear(in_channels, out_channels)
+        self.lin = nn.Linear(in_channels, out_channels)
 
     def forward(self, x, edge_index, alpha):
-        x = self.linear(x)
+        x = self.lin(x)
         return self.propagate(edge_index, x=x, alpha=alpha)
 
     def message(self, x_j, alpha):
-        return alpha.unsqueeze(-1) * x_j
+        return x_j * alpha.unsqueeze(-1)
 
 
 class AquaGraph:
-    def __init__(self, tau=0.9, k=2, num_layers=3):
+    def __init__(self, tau=0.9, k=8, num_layers=3, soft_topk=True, edge_threshold=0.0):
         self.tau, self.k, self.K = tau, k, num_layers
+        self.soft_topk = soft_topk
+        self.edge_threshold = edge_threshold
 
     def compute_priority(self, x, x_prev, edge_index, wp, alpha_ij):
         N, src, dst = x.size(0), edge_index[0], edge_index[1]
@@ -211,110 +213,217 @@ class AquaGraph:
         score = x @ wp + neigh_sum
         return torch.sigmoid(score).view(-1)
 
-    def compute_alpha(self, x_proj, edge_index, pi, att_mlp):
+    def compute_alpha(self, x_proj, edge_index, pi, att_mlp, tau=1.0, clip=5.0, topk=None):
         src, dst = edge_index
         h_i, h_j, p_j = x_proj[dst], x_proj[src], pi[src].unsqueeze(1)
         e_ij = torch.cat([h_i, h_j, p_j], dim=1)
-        e = F.leaky_relu(att_mlp(e_ij).squeeze(-1), 0.2)
+        e = att_mlp(e_ij).squeeze(-1)
+        # stability: pre-norm will be applied outside; here clamp and temperature
+        e = F.leaky_relu(e, 0.2)
+        if tau is not None and tau > 0:
+            e = e / tau
+        e = torch.clamp(e, -clip, clip)
+
+        # compute soft attention per-destination node with optional threshold and top-k cap
+        # compute exp and denom per dst
         exp_e = torch.exp(e)
+        # apply edge threshold by masking small logits first if requested
+        if self.edge_threshold is not None and self.edge_threshold > 0:
+            mask = e >= self.edge_threshold
+            exp_e = exp_e * mask.float()
         denom = torch.zeros(x_proj.size(0), device=x_proj.device).index_add_(0, dst, exp_e)
-        return exp_e / (denom[dst] + 1e-16)
+        alpha = exp_e / (denom[dst] + 1e-16)
+
+        if self.soft_topk and (topk is not None and topk > 0):
+            # keep top-k edges per destination, renormalize
+            # build per-node topk
+            num_edges = dst.numel()
+            device = x_proj.device
+            alpha_new = torch.zeros_like(alpha)
+            # group by dst node
+            # To avoid heavy scatter, we compute with index sorting
+            order = torch.argsort(dst)
+            dst_sorted = dst[order]
+            alpha_sorted = alpha[order]
+            start = 0
+            n = x_proj.size(0)
+            # iterate over contiguous blocks of same dst
+            while start < num_edges:
+                node = dst_sorted[start].item()
+                end = start
+                while end < num_edges and dst_sorted[end].item() == node:
+                    end += 1
+                block_idx = order[start:end]
+                block_alpha = alpha[block_idx]
+                if block_alpha.numel() > 0:
+                    k_eff = min(topk, block_alpha.numel())
+                    vals, idxs = torch.topk(block_alpha, k_eff, largest=True)
+                    sel = block_idx[idxs]
+                    # renormalize
+                    s = vals.sum() + 1e-16
+                    alpha_new[sel] = vals / s
+                start = end
+            alpha = alpha_new
+        return alpha
 
     def select_subgraph(self, pi):
+        # soft approach: keep nodes with probability over threshold; this is still used to restrict compute
         return (pi >= self.tau).nonzero(as_tuple=False).view(-1)
 
-    def local_neighbors(self, nodes, edge_index, num_nodes):
+    def local_neighbors(self, nodes, edge_index, num_nodes, k):
         if nodes.numel() == 0:
             return torch.arange(num_nodes, device=edge_index.device), edge_index
         sub_nodes, sub_edge_index, _, _ = k_hop_subgraph(
-            nodes, self.k, edge_index, relabel_nodes=True, num_nodes=num_nodes
+            nodes, k, edge_index, relabel_nodes=True, num_nodes=num_nodes
         )
         return sub_nodes, sub_edge_index
 
 
+class PreNormBlock(nn.Module):
+    def __init__(self, dim, ffn_expansion=2, dropout=0.25):
+        super().__init__()
+        self.ln1 = nn.LayerNorm(dim)
+        self.ln2 = nn.LayerNorm(dim)
+        hidden = int(dim * ffn_expansion)
+        self.ffn = nn.Sequential(
+            nn.Linear(dim, hidden),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden, dim),
+        )
+        self.dropout = nn.Dropout(dropout)
+
+    def attn(self, x, edge_index, alpha, conv: MessagePassing):
+        # attention conv expects properly normalized alpha
+        return conv(x, edge_index, alpha=alpha)
+
+    def forward(self, x, edge_index, alpha, conv: MessagePassing):
+        # pre-norm + residual around attention
+        h = self.ln1(x)
+        h = self.attn(h, edge_index, alpha, conv)
+        x = x + self.dropout(F.relu(h))
+        # pre-norm + residual around FFN
+        h2 = self.ln2(x)
+        h2 = self.ffn(h2)
+        x = x + self.dropout(h2)
+        return x
+
+
 class AGNNet(nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels, tau=0.9, k=2, num_layers=3, dropout=0.3):
+    def __init__(
+        self,
+        in_channels,
+        hidden_channels,
+        out_channels,
+        tau=0.9,
+        k=8,
+        num_layers=3,
+        dropout=0.25,
+        ffn_expansion=2.0,
+        soft_topk=True,
+        edge_threshold=0.0,
+        disable_pred_subgraph=False,
+        add_self_loops=True,
+    ):
         super().__init__()
         self.input_proj = nn.Linear(in_channels, hidden_channels)
-        self.layers = nn.ModuleList([
+        self.blocks = nn.ModuleList([
+            PreNormBlock(hidden_channels, ffn_expansion=ffn_expansion, dropout=dropout) for _ in range(num_layers)
+        ])
+        self.convs = nn.ModuleList([
             PriorityWeightedConv(hidden_channels, hidden_channels) for _ in range(num_layers)
         ])
         self.output_proj = nn.Linear(hidden_channels, out_channels)
         self.dropout = nn.Dropout(dropout)
 
-        self.aqua = AquaGraph(tau=tau, k=k, num_layers=num_layers)
+        self.aqua = AquaGraph(tau=tau, k=k, num_layers=num_layers, soft_topk=soft_topk, edge_threshold=edge_threshold)
         self.att_mlp = nn.Linear(2 * hidden_channels + 1, 1)
         self.wp = nn.Parameter(torch.randn(hidden_channels, 1))
 
         self.register_buffer('x_prev', None)
 
-        # 🧠 Caching to avoid recomputing subgraph structure
-        self.cached_sub_nodes = None
-        self.cached_sub_edge_index = None
-        self.cached_mapped_edge_index = None
-        # Track graph signature to safely reuse cache only when graph is unchanged
-        self.cached_graph_num_nodes = None
-        self.cached_graph_num_edges = None
+        # Annealing for k
+        self._anneal_k = False
+        self._k_min = max(1, min(2, k))
+        self._k_max = int(k)
+        self._cur_k = int(k)
+        self._total_epochs = 1
+        self._epoch = 0
+
+        self.disable_pred_subgraph = disable_pred_subgraph
+        self.add_self_loops = add_self_loops
+        self.tau = tau
+
+    def enable_k_annealing(self, k_min=2, k_max=None, total_epochs=100):
+        self._anneal_k = True
+        self._k_min = int(k_min)
+        self._k_max = int(k_max if k_max is not None else self._k_max)
+        self._total_epochs = max(1, int(total_epochs))
+
+    def set_epoch(self, epoch, total_epochs=None):
+        self._epoch = int(epoch)
+        if total_epochs is not None:
+            self._total_epochs = int(total_epochs)
+        if self._anneal_k:
+            t = min(1.0, max(0.0, (self._epoch - 1) / max(1, self._total_epochs - 1)))
+            self._cur_k = int(round(self._k_min + t * (self._k_max - self._k_min)))
+        else:
+            self._cur_k = self._k_max
+
+    def _ensure_prev(self, x):
+        if self.x_prev is None or self.x_prev.size(0) != x.size(0) or self.x_prev.size(1) != x.size(1):
+            self.x_prev = torch.zeros_like(x)
 
     def forward(self, x, edge_index, edge_weight=None, batch=None):
         num_nodes = x.size(0)
-        x = F.relu(self.input_proj(x))
+        x = self.input_proj(x)
+        x = F.relu(x)
 
-        # Initialize x_prev lazily
-        if self.x_prev is None or self.x_prev.size(0) != x.size(0):
-            self.x_prev = torch.zeros_like(x)
+        self._ensure_prev(x)
 
-        # === Compute priority scores ===
+        # Priority scores (detach to avoid straight-through)
         with torch.no_grad():
             dummy_alpha = torch.ones(edge_index.size(1), device=x.device)
             pi = self.aqua.compute_priority(x, self.x_prev, edge_index, self.wp.squeeze(), dummy_alpha)
 
-        # === Cache or compute subgraph (safe across NeighborLoader batches) ===
-        graph_num_nodes = num_nodes
-        graph_num_edges = edge_index.size(1)
-        # Disable cross-batch caching under mini-batch sampling to avoid stale indices
-        # (safe for full-batch as well since recomputation is cheap compared to correctness)
-        must_recompute = True
-        if must_recompute:
-            selected_nodes = self.aqua.select_subgraph(pi)
-            sub_nodes, sub_edge_index = self.aqua.local_neighbors(selected_nodes, edge_index, num_nodes=num_nodes)
-
-            # sub_edge_index from k_hop_subgraph is already relabeled (relabel_nodes=True)
-            mapped_edge_index = sub_edge_index
-
-            self.cached_sub_nodes = sub_nodes
-            self.cached_sub_edge_index = sub_edge_index
-            self.cached_mapped_edge_index = mapped_edge_index
-            self.cached_graph_num_nodes = graph_num_nodes
-            self.cached_graph_num_edges = graph_num_edges
+        # Decide subgraph scope
+        if self.disable_pred_subgraph:
+            selected_nodes = torch.arange(num_nodes, device=x.device)
         else:
-            sub_nodes = self.cached_sub_nodes
-            mapped_edge_index = self.cached_mapped_edge_index
+            selected_nodes = self.aqua.select_subgraph(pi)
+
+        cur_k = int(getattr(self, '_cur_k', self.aqua.k))
+        sub_nodes, sub_edge_index = self.aqua.local_neighbors(selected_nodes, edge_index, num_nodes=num_nodes, k=cur_k)
+
+        # Guarantee self-loops for stability
+        if self.add_self_loops:
+            if sub_nodes.numel() > 0:
+                local_n = sub_nodes.numel()
+                loops = torch.arange(local_n, device=sub_nodes.device)
+                loops = torch.stack([loops, loops], dim=0)
+                sub_edge_index = torch.cat([sub_edge_index, loops], dim=1)
 
         if sub_nodes.numel() == 0:
             return torch.zeros(num_nodes, self.output_proj.out_features, device=x.device)
 
-        # === Extract subgraph features and priority ===
         sub_x = x[sub_nodes]
         sub_pi = pi[sub_nodes]
 
-        # === Compute attention weights ===
-        alpha_ij = self.aqua.compute_alpha(sub_x, mapped_edge_index, sub_pi, self.att_mlp)
+        # Compute soft attention with temperature tau and top-k cap
+        alpha_ij = self.aqua.compute_alpha(sub_x, sub_edge_index, sub_pi, self.att_mlp, tau=self.tau, clip=5.0, topk=cur_k)
 
-        # === Apply PriorityWeightedConv layers ===
+        # Stacked pre-norm attention + FFN blocks with residuals
         h = sub_x
-        for conv in self.layers:
-            h = conv(h, mapped_edge_index, alpha=alpha_ij)
-            h = self.dropout(F.relu(h))
+        for blk, conv in zip(self.blocks, self.convs):
+            h = blk(h, sub_edge_index, alpha_ij, conv)
 
-        # === Project to logits and fill into full logits tensor ===
-        sub_logits = self.output_proj(h)
+        # Project to logits and scatter back
+        sub_logits = self.output_proj(h)  # raw logits (no softmax)
         full_logits = torch.zeros(num_nodes, sub_logits.shape[1], device=x.device)
         full_logits[sub_nodes] = sub_logits
 
-        # === Update x_prev only on sub_nodes ===
+        # Update memory only on visited nodes
         self.x_prev[sub_nodes] = x[sub_nodes].detach()
-
         return full_logits
 
 

@@ -54,6 +54,17 @@ Default hyperparameters:
 - `weight-decay`: `5e-4`
 - `num-layers`: `2`
 
+## One-vs-All SMOTE Average Accuracy
+You can run experiments that compute the average accuracy over n binary one-vs-all classifiers (n = number of classes). For each class, the training nodes are oversampled using SMOTE in a binary setting, a binary (2-class) model is trained, and the per-class validation/test accuracy is recorded and averaged.
+
+Example:
+```bash
+python main.py --model BaselineGCN --dataset OGB-Arxiv --epochs 20 --ova-smote
+```
+Notes:
+- For sampled datasets like Reddit, only validation accuracy is averaged (test accuracy is not computed in the sampled path, consistent with the existing pipeline).
+- For TGN or very large graphs the per-class SMOTE step is skipped to avoid memory blow-ups.
+
 ## Notes
 - The datasets are large and therefore not stored in this repository.
 - After downloading they reside in `simple_data/` and are loaded directly

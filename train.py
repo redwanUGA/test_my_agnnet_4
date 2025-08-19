@@ -4,11 +4,7 @@ import torch.nn.functional as F
 from tqdm import tqdm
 # Ensure TGN is imported from models for isinstance checks
 from models import AGNNet, TGN
-try:
-    from models_agn_net_only import AGNNet as AGNNetOverride
-except Exception:
-    AGNNetOverride = AGNNet
-AGN_TYPES = (AGNNet, AGNNetOverride)
+AGN_TYPES = (AGNNet,)
 from data_loader import partition_graph
 
 

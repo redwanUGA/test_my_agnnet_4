@@ -215,6 +215,8 @@ def run_ova_smote_experiments(args, device):
             test_accs.append(best_test_acc)
 
     # Report averages
+    avg_val = None
+    avg_test = None
     if val_accs:
         avg_val = sum(val_accs) / len(val_accs)
         print(f"\nOVA-SMOTE Average Validation Accuracy across {len(val_accs)} classes: {avg_val:.4f}")
@@ -224,3 +226,4 @@ def run_ova_smote_experiments(args, device):
     else:
         if is_sampled_dataset:
             print("Test accuracy is not computed in sampled training path; only validation accuracy is averaged.")
+    return avg_val

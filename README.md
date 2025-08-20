@@ -65,6 +65,20 @@ Notes:
 - For sampled datasets like Reddit, only validation accuracy is averaged (test accuracy is not computed in the sampled path, consistent with the existing pipeline).
 - For TGN or very large graphs the per-class SMOTE step is skipped to avoid memory blow-ups.
 
+## Parameter-Scaling OVA Experiments (CSV Output)
+Generate seven variants per model by scaling trainable parameter counts from ~10M to ~100M, run OVA-SMOTE accuracy for each dataset/model variant, and save results to CSV.
+
+Usage:
+```bash
+python run_param_scaling_ova.py --epochs 5 --output-csv results_param_scaling.csv \
+  --datasets OGB-Arxiv Reddit TGB-Wiki MOOC \
+  --models BaselineGCN GraphSAGE GAT TGAT AGNNet
+```
+Notes:
+- The CSV will contain: dataset, model, param_count, average_ova_accuracy (validation average).
+- TGN is skipped here because its parameter count is dominated by node-dependent memory state, making counts incomparable.
+- You can adjust epochs to trade off runtime vs accuracy. The script searches simple grids over hidden size and number of layers to approximate target parameter counts.
+
 ## Ablation Study: AGNNet
 This repo includes a ready-to-run, reproducible ablation study for AGNNet that isolates the contribution of its main components. The ablation compares a baseline AGNNet configuration against targeted removals/toggles across all supported datasets.
 

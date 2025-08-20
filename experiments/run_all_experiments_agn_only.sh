@@ -2,7 +2,7 @@
 # Runs ONLY AGNNet across datasets with recommended modifications and k/tau sweeps.
 set -euo pipefail
 
-LOG_DIR="logs"
+LOG_DIR="../results/logs"
 mkdir -p "$LOG_DIR"
 TS=$(date +'%Y%m%d_%H%M%S')
 LOG_FILE="$LOG_DIR/run_all_experiments_agn_only_${TS}.txt"
@@ -23,13 +23,13 @@ cleanup() {
 trap cleanup EXIT
 
 # Ensure datasets
-if [ ! -d "simple_data" ]; then
-  echo "[INFO] Downloading datasets to simple_data/ …"
-  gdown 'https://drive.google.com/drive/folders/1iZE_Cg5wAk_94Uk1DgNrOLiqp4F6cbfZ?usp=sharing' --folder
+if [ ! -d "../simple_data" ]; then
+  echo "[INFO] Downloading datasets to ../simple_data/ …"
+  (cd .. && gdown 'https://drive.google.com/drive/folders/1iZE_Cg5wAk_94Uk1DgNrOLiqp4F6cbfZ?usp=sharing' --folder)
 fi
 
 EPOCHS=${EPOCHS:-50}
-SAVE_DIR="saved_models_agn"
+SAVE_DIR="../results/saved_models_agn"
 mkdir -p "$SAVE_DIR"
 
 # Grids
@@ -41,7 +41,7 @@ for ds in "${DATASETS[@]}"; do
   for k in "${KS[@]}"; do
     for tau in "${TAUS[@]}"; do
       echo "[$(date +'%F %T')] AGNNet ds=$ds k=$k tau=$tau"
-      python3 main.py \
+      python3 ../backend/main.py \
         --model AGNNet \
         --dataset "$ds" \
         --epochs "$EPOCHS" \
@@ -65,7 +65,7 @@ for ds in "${DATASETS[@]}"; do
   done
   # Ablate predictive-subgraph module once per dataset (sanity check)
   echo "[$(date +'%F %T')] AGNNet ds=$ds (ablation: disable predictive subgraph)"
-  python3 main.py \
+  python3 ../backend/main.py \
     --model AGNNet \
     --dataset "$ds" \
     --epochs "$EPOCHS" \

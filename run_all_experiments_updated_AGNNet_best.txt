@@ -1,0 +1,2568 @@
+for model=BaselineGCN dataset=OGB-Arxiv
+[2025-08-16 05:59:57] Training model=BaselineGCN dataset=OGB-Arxiv
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='BaselineGCN', dataset='OGB-Arxiv', epochs=20, lr=0.01, hidden_channels=128, dropout=0.6, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/BaselineGCN_OGB-Arxiv.pt', config='saved_models/BaselineGCN_OGB-Arxiv_params.json', num_parts=4)
+
+--- Loading OGB-Arxiv ---
+✅ Dataset 'OGB-Arxiv' loaded successfully.
+   Nodes: 169343, Edges: 1166243
+   Features: 128, Classes: 40
+   Train nodes: 101605, Val nodes: 33869, Test nodes: 33869
+
+Model Initialized: BaselineGCN
+
+=== Training BaselineGCN on OGB-Arxiv for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 2.4959 | Val Acc: 0.4005 | Test Acc: 0.4027
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 2.5251 | Val Acc: 0.4290 | Test Acc: 0.4335
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 2.4844 | Val Acc: 0.4151 | Test Acc: 0.4175
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 2.4502 | Val Acc: 0.4172 | Test Acc: 0.4173
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 2.4006 | Val Acc: 0.4168 | Test Acc: 0.4202
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 2.3911 | Val Acc: 0.4368 | Test Acc: 0.4407
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 2.3697 | Val Acc: 0.4606 | Test Acc: 0.4631
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 2.3385 | Val Acc: 0.4605 | Test Acc: 0.4620
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 2.3224 | Val Acc: 0.4475 | Test Acc: 0.4491
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 2.3115 | Val Acc: 0.4395 | Test Acc: 0.4411
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 2.2862 | Val Acc: 0.4333 | Test Acc: 0.4338
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 2.2600 | Val Acc: 0.4257 | Test Acc: 0.4286
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 2.2514 | Val Acc: 0.4299 | Test Acc: 0.4342
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 2.2379 | Val Acc: 0.4421 | Test Acc: 0.4472
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 2.2213 | Val Acc: 0.4512 | Test Acc: 0.4551
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 2.2046 | Val Acc: 0.4535 | Test Acc: 0.4563
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 2.1940 | Val Acc: 0.4519 | Test Acc: 0.4561
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 2.1804 | Val Acc: 0.4499 | Test Acc: 0.4554
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 2.1636 | Val Acc: 0.4465 | Test Acc: 0.4506
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 2.1521 | Val Acc: 0.4452 | Test Acc: 0.4496
+
+=== Training Complete ===
+-> Best Val Acc for OGB-Arxiv: 0.4606, Test Acc @ Best Val: 0.4631
+Cleaning up memory...
+
+for model=BaselineGCN dataset=Reddit
+[2025-08-16 06:00:04] Training model=BaselineGCN dataset=Reddit
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='BaselineGCN', dataset='Reddit', epochs=20, lr=0.005, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/BaselineGCN_Reddit.pt', config='saved_models/BaselineGCN_Reddit_params.json', num_parts=4)
+
+--- Loading Reddit ---
+✅ Dataset 'Reddit' loaded successfully.
+   Nodes: 232965, Edges: 114615892
+   Features: 602, Classes: 41
+   Train nodes: 153431, Val nodes: 23831, Test nodes: 55703
+Skipping SMOTE for this configuration to avoid memory blow-up.
+
+Model Initialized: BaselineGCN
+Using NeighborSampler for mini-batch training.
+
+=== Training BaselineGCN on Reddit for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 0.3786 | Val Acc: 0.9218 | Test Acc: N/A
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 0.3581 | Val Acc: 0.9270 | Test Acc: N/A
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 0.3568 | Val Acc: 0.9240 | Test Acc: N/A
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 0.3524 | Val Acc: 0.9285 | Test Acc: N/A
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 0.3550 | Val Acc: 0.9226 | Test Acc: N/A
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 0.3548 | Val Acc: 0.9291 | Test Acc: N/A
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.3547 | Val Acc: 0.9276 | Test Acc: N/A
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.3518 | Val Acc: 0.9287 | Test Acc: N/A
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.3514 | Val Acc: 0.9243 | Test Acc: N/A
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.3577 | Val Acc: 0.9298 | Test Acc: N/A
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.3524 | Val Acc: 0.9255 | Test Acc: N/A
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.3510 | Val Acc: 0.9236 | Test Acc: N/A
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.3500 | Val Acc: 0.9285 | Test Acc: N/A
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.3535 | Val Acc: 0.9301 | Test Acc: N/A
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.3523 | Val Acc: 0.9300 | Test Acc: N/A
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.3508 | Val Acc: 0.9231 | Test Acc: N/A
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.3542 | Val Acc: 0.9299 | Test Acc: N/A
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.3546 | Val Acc: 0.9282 | Test Acc: N/A
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.3539 | Val Acc: 0.9266 | Test Acc: N/A
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.3537 | Val Acc: 0.9268 | Test Acc: N/A
+
+=== Training Complete ===
+-> Best Val Acc for Reddit: 0.9301
+   (To get final test accuracy, load best model and run on a test loader)
+Cleaning up memory...
+
+for model=BaselineGCN dataset=TGB-Wiki
+[2025-08-16 06:08:08] Training model=BaselineGCN dataset=TGB-Wiki
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='BaselineGCN', dataset='TGB-Wiki', epochs=20, lr=0.01, hidden_channels=32, dropout=0.4, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/BaselineGCN_TGB-Wiki.pt', config='saved_models/BaselineGCN_TGB-Wiki_params.json', num_parts=4)
+
+--- Loading TGB-Wiki ---
+✅ Dataset 'TGB-Wiki' loaded successfully.
+   Nodes: 11701, Edges: 431726
+   Features: 300, Classes: 10
+   Train nodes: 5116, Val nodes: 5845, Test nodes: 5847
+
+Model Initialized: BaselineGCN
+
+=== Training BaselineGCN on TGB-Wiki for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 1.1724 | Val Acc: 0.7352 | Test Acc: 0.7199
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 1.1523 | Val Acc: 0.7543 | Test Acc: 0.7346
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 1.1100 | Val Acc: 0.7415 | Test Acc: 0.7221
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 1.0767 | Val Acc: 0.7388 | Test Acc: 0.7219
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 1.0541 | Val Acc: 0.7588 | Test Acc: 0.7394
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 1.0167 | Val Acc: 0.7754 | Test Acc: 0.7554
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.9884 | Val Acc: 0.7764 | Test Acc: 0.7594
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.9667 | Val Acc: 0.7749 | Test Acc: 0.7573
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.9458 | Val Acc: 0.7769 | Test Acc: 0.7570
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.9256 | Val Acc: 0.7817 | Test Acc: 0.7602
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.9009 | Val Acc: 0.7831 | Test Acc: 0.7623
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.8832 | Val Acc: 0.7837 | Test Acc: 0.7638
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.8664 | Val Acc: 0.7837 | Test Acc: 0.7660
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.8435 | Val Acc: 0.7837 | Test Acc: 0.7693
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.8378 | Val Acc: 0.7875 | Test Acc: 0.7712
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.8181 | Val Acc: 0.7896 | Test Acc: 0.7717
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.7975 | Val Acc: 0.7899 | Test Acc: 0.7722
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.7899 | Val Acc: 0.7892 | Test Acc: 0.7708
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.7723 | Val Acc: 0.7913 | Test Acc: 0.7737
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.7663 | Val Acc: 0.7947 | Test Acc: 0.7772
+
+=== Training Complete ===
+-> Best Val Acc for TGB-Wiki: 0.7947, Test Acc @ Best Val: 0.7772
+Cleaning up memory...
+
+for model=BaselineGCN dataset=MOOC
+[2025-08-16 06:08:12] Training model=BaselineGCN dataset=MOOC
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='BaselineGCN', dataset='MOOC', epochs=20, lr=0.005, hidden_channels=64, dropout=0.6, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/BaselineGCN_MOOC.pt', config='saved_models/BaselineGCN_MOOC_params.json', num_parts=4)
+
+--- Loading MOOC ---
+✅ Dataset 'MOOC' loaded successfully.
+   Nodes: 418799, Edges: 411750
+   Features: 4, Classes: 2
+   Train nodes: 251279, Val nodes: 83760, Test nodes: 83760
+Skipping SMOTE for this configuration to avoid memory blow-up.
+
+Model Initialized: BaselineGCN
+
+=== Training BaselineGCN on MOOC for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 0.6488 | Val Acc: 0.8309 | Test Acc: 0.8306
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 0.5980 | Val Acc: 0.8311 | Test Acc: 0.8308
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 0.5519 | Val Acc: 0.8312 | Test Acc: 0.8308
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 0.5088 | Val Acc: 0.8313 | Test Acc: 0.8309
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 0.4692 | Val Acc: 0.8313 | Test Acc: 0.8309
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 0.4327 | Val Acc: 0.9901 | Test Acc: 0.9899
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.3980 | Val Acc: 0.9902 | Test Acc: 0.9901
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.3667 | Val Acc: 0.9904 | Test Acc: 0.9902
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.3374 | Val Acc: 0.9904 | Test Acc: 0.9902
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.3107 | Val Acc: 0.9904 | Test Acc: 0.9902
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.2854 | Val Acc: 0.9904 | Test Acc: 0.9902
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.2622 | Val Acc: 0.9904 | Test Acc: 0.9902
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.2414 | Val Acc: 0.9904 | Test Acc: 0.9902
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.2213 | Val Acc: 0.9904 | Test Acc: 0.9902
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.2037 | Val Acc: 0.9904 | Test Acc: 0.9902
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.1867 | Val Acc: 0.9904 | Test Acc: 0.9902
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.1730 | Val Acc: 0.9904 | Test Acc: 0.9902
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.1594 | Val Acc: 0.9904 | Test Acc: 0.9902
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.1473 | Val Acc: 0.9904 | Test Acc: 0.9902
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.1367 | Val Acc: 0.9904 | Test Acc: 0.9902
+
+=== Training Complete ===
+-> Best Val Acc for MOOC: 0.9904, Test Acc @ Best Val: 0.9902
+Cleaning up memory...
+
+for model=AGNNet dataset=OGB-Arxiv
+[2025-08-16 06:42:21] Training model=AGNNet dataset=OGB-Arxiv
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='AGNNet', dataset='OGB-Arxiv', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=1, load_model='saved_models/AGNNet_OGB-Arxiv.pt', config='saved_models/AGNNet_OGB-Arxiv_params.json', num_parts=4)
+
+--- Loading OGB-Arxiv ---
+✅ Dataset 'OGB-Arxiv' loaded successfully.
+   Nodes: 169343, Edges: 1166243
+   Features: 128, Classes: 40
+   Train nodes: 101605, Val nodes: 33869, Test nodes: 33869
+
+Model Initialized: AGNNet
+
+=== Training AGNNet on OGB-Arxiv for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 3.9814 | Val Acc: 0.1565 | Test Acc: 0.1535
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 3.7644 | Val Acc: 0.1565 | Test Acc: 0.1535
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 3.7245 | Val Acc: 0.1565 | Test Acc: 0.1535
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 3.7081 | Val Acc: 0.1565 | Test Acc: 0.1535
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 3.6988 | Val Acc: 0.1565 | Test Acc: 0.1535
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 3.6882 | Val Acc: 0.1565 | Test Acc: 0.1535
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 3.6874 | Val Acc: 0.1545 | Test Acc: 0.1521
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 3.6847 | Val Acc: 0.1439 | Test Acc: 0.1421
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 3.6842 | Val Acc: 0.1234 | Test Acc: 0.1218
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 3.6839 | Val Acc: 0.1033 | Test Acc: 0.1015
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 3.6826 | Val Acc: 0.0352 | Test Acc: 0.0374
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 3.6793 | Val Acc: 0.0277 | Test Acc: 0.0296
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 3.6750 | Val Acc: 0.0238 | Test Acc: 0.0250
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 3.6691 | Val Acc: 0.0033 | Test Acc: 0.0037
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 3.6647 | Val Acc: 0.0057 | Test Acc: 0.0058
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 3.6624 | Val Acc: 0.0032 | Test Acc: 0.0037
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 3.6595 | Val Acc: 0.0033 | Test Acc: 0.0037
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 3.6597 | Val Acc: 0.0060 | Test Acc: 0.0063
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 3.6070 | Val Acc: 0.0055 | Test Acc: 0.0062
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 3.6009 | Val Acc: 0.0055 | Test Acc: 0.0063
+
+=== Training Complete ===
+-> Best Val Acc for OGB-Arxiv: 0.1565, Test Acc @ Best Val: 0.1535
+Cleaning up memory...
+
+for model=GraphSAGE dataset=Reddit
+[2025-08-16 06:08:24] Training model=GraphSAGE dataset=Reddit
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='GraphSAGE', dataset='Reddit', epochs=20, lr=0.005, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/GraphSAGE_Reddit.pt', config='saved_models/GraphSAGE_Reddit_params.json', num_parts=4)
+
+--- Loading Reddit ---
+✅ Dataset 'Reddit' loaded successfully.
+   Nodes: 232965, Edges: 114615892
+   Features: 602, Classes: 41
+   Train nodes: 153431, Val nodes: 23831, Test nodes: 55703
+Skipping SMOTE for this configuration to avoid memory blow-up.
+
+Model Initialized: GraphSAGE
+Using NeighborSampler for mini-batch training.
+
+=== Training GraphSAGE on Reddit for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 0.3503 | Val Acc: 0.9468 | Test Acc: N/A
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 0.2850 | Val Acc: 0.9483 | Test Acc: N/A
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 0.2818 | Val Acc: 0.9492 | Test Acc: N/A
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 0.2842 | Val Acc: 0.9465 | Test Acc: N/A
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 0.2854 | Val Acc: 0.9487 | Test Acc: N/A
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 0.2857 | Val Acc: 0.9480 | Test Acc: N/A
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.2865 | Val Acc: 0.9459 | Test Acc: N/A
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.2842 | Val Acc: 0.9442 | Test Acc: N/A
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.2866 | Val Acc: 0.9501 | Test Acc: N/A
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.2877 | Val Acc: 0.9460 | Test Acc: N/A
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.2864 | Val Acc: 0.9471 | Test Acc: N/A
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.2866 | Val Acc: 0.9475 | Test Acc: N/A
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.2834 | Val Acc: 0.9491 | Test Acc: N/A
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.2835 | Val Acc: 0.9447 | Test Acc: N/A
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.2854 | Val Acc: 0.9491 | Test Acc: N/A
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.2874 | Val Acc: 0.9476 | Test Acc: N/A
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.2887 | Val Acc: 0.9478 | Test Acc: N/A
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.2857 | Val Acc: 0.9477 | Test Acc: N/A
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.2854 | Val Acc: 0.9478 | Test Acc: N/A
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.2851 | Val Acc: 0.9500 | Test Acc: N/A
+
+=== Training Complete ===
+-> Best Val Acc for Reddit: 0.9501
+   (To get final test accuracy, load best model and run on a test loader)
+Cleaning up memory...
+
+for model=GraphSAGE dataset=TGB-Wiki
+[2025-08-16 06:16:25] Training model=GraphSAGE dataset=TGB-Wiki
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='GraphSAGE', dataset='TGB-Wiki', epochs=20, lr=0.01, hidden_channels=32, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='max', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/GraphSAGE_TGB-Wiki.pt', config='saved_models/GraphSAGE_TGB-Wiki_params.json', num_parts=4)
+
+--- Loading TGB-Wiki ---
+✅ Dataset 'TGB-Wiki' loaded successfully.
+   Nodes: 11701, Edges: 431726
+   Features: 300, Classes: 10
+   Train nodes: 5116, Val nodes: 5845, Test nodes: 5847
+
+Model Initialized: GraphSAGE
+
+=== Training GraphSAGE on TGB-Wiki for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 1.0011 | Val Acc: 0.5855 | Test Acc: 0.5702
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 1.1518 | Val Acc: 0.6710 | Test Acc: 0.6508
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 1.0104 | Val Acc: 0.7227 | Test Acc: 0.6969
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 0.9889 | Val Acc: 0.7086 | Test Acc: 0.6887
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 0.9984 | Val Acc: 0.7268 | Test Acc: 0.7043
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 0.9481 | Val Acc: 0.7589 | Test Acc: 0.7364
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.9267 | Val Acc: 0.7526 | Test Acc: 0.7364
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.8821 | Val Acc: 0.7287 | Test Acc: 0.7106
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.8679 | Val Acc: 0.7133 | Test Acc: 0.6957
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.8728 | Val Acc: 0.7203 | Test Acc: 0.7041
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.8525 | Val Acc: 0.7312 | Test Acc: 0.7185
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.8365 | Val Acc: 0.7478 | Test Acc: 0.7337
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.7993 | Val Acc: 0.7656 | Test Acc: 0.7486
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.7984 | Val Acc: 0.7721 | Test Acc: 0.7565
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.7795 | Val Acc: 0.7767 | Test Acc: 0.7638
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.7707 | Val Acc: 0.7795 | Test Acc: 0.7647
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.7783 | Val Acc: 0.7825 | Test Acc: 0.7643
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.7478 | Val Acc: 0.7808 | Test Acc: 0.7623
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.7443 | Val Acc: 0.7767 | Test Acc: 0.7549
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.7378 | Val Acc: 0.7752 | Test Acc: 0.7489
+
+=== Training Complete ===
+-> Best Val Acc for TGB-Wiki: 0.7825, Test Acc @ Best Val: 0.7643
+Cleaning up memory...
+
+for model=GraphSAGE dataset=MOOC
+[2025-08-16 06:16:29] Training model=GraphSAGE dataset=MOOC
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='GraphSAGE', dataset='MOOC', epochs=20, lr=0.005, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/GraphSAGE_MOOC.pt', config='saved_models/GraphSAGE_MOOC_params.json', num_parts=4)
+
+--- Loading MOOC ---
+✅ Dataset 'MOOC' loaded successfully.
+   Nodes: 418799, Edges: 411750
+   Features: 4, Classes: 2
+   Train nodes: 251279, Val nodes: 83760, Test nodes: 83760
+Skipping SMOTE for this configuration to avoid memory blow-up.
+
+Model Initialized: GraphSAGE
+
+=== Training GraphSAGE on MOOC for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 0.3313 | Val Acc: 0.9732 | Test Acc: 0.9736
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 0.2926 | Val Acc: 0.9732 | Test Acc: 0.9736
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 0.2580 | Val Acc: 0.9732 | Test Acc: 0.9736
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 0.2279 | Val Acc: 0.9740 | Test Acc: 0.9743
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 0.2021 | Val Acc: 0.9896 | Test Acc: 0.9891
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 0.1800 | Val Acc: 0.9904 | Test Acc: 0.9898
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.1605 | Val Acc: 0.9905 | Test Acc: 0.9899
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.1442 | Val Acc: 0.9905 | Test Acc: 0.9899
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.1301 | Val Acc: 0.9905 | Test Acc: 0.9899
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.1182 | Val Acc: 0.9905 | Test Acc: 0.9899
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.1084 | Val Acc: 0.9905 | Test Acc: 0.9899
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.0998 | Val Acc: 0.9905 | Test Acc: 0.9899
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.0925 | Val Acc: 0.9905 | Test Acc: 0.9899
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.0864 | Val Acc: 0.9905 | Test Acc: 0.9899
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.0814 | Val Acc: 0.9905 | Test Acc: 0.9899
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.0775 | Val Acc: 0.9905 | Test Acc: 0.9899
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.0738 | Val Acc: 0.9905 | Test Acc: 0.9899
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.0713 | Val Acc: 0.9905 | Test Acc: 0.9899
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.0689 | Val Acc: 0.9905 | Test Acc: 0.9899
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.0670 | Val Acc: 0.9905 | Test Acc: 0.9899
+
+=== Training Complete ===
+-> Best Val Acc for MOOC: 0.9905, Test Acc @ Best Val: 0.9899
+Cleaning up memory...
+
+for model=GAT dataset=OGB-Arxiv
+[2025-08-16 06:16:33] Training model=GAT dataset=OGB-Arxiv
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='GAT', dataset='OGB-Arxiv', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/GAT_OGB-Arxiv.pt', config='saved_models/GAT_OGB-Arxiv_params.json', num_parts=4)
+
+--- Loading OGB-Arxiv ---
+✅ Dataset 'OGB-Arxiv' loaded successfully.
+   Nodes: 169343, Edges: 1166243
+   Features: 128, Classes: 40
+   Train nodes: 101605, Val nodes: 33869, Test nodes: 33869
+
+Model Initialized: GAT
+
+=== Training GAT on OGB-Arxiv for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 3.3082 | Val Acc: 0.3847 | Test Acc: 0.3798
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 3.3329 | Val Acc: 0.4160 | Test Acc: 0.4110
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 3.2950 | Val Acc: 0.4302 | Test Acc: 0.4245
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 3.2853 | Val Acc: 0.4272 | Test Acc: 0.4207
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 3.2796 | Val Acc: 0.4181 | Test Acc: 0.4128
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 3.2634 | Val Acc: 0.4107 | Test Acc: 0.4046
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 3.2529 | Val Acc: 0.4139 | Test Acc: 0.4084
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 3.2434 | Val Acc: 0.4263 | Test Acc: 0.4200
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 3.2358 | Val Acc: 0.4357 | Test Acc: 0.4308
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 3.2273 | Val Acc: 0.4418 | Test Acc: 0.4361
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 3.2214 | Val Acc: 0.4406 | Test Acc: 0.4343
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 3.2122 | Val Acc: 0.4346 | Test Acc: 0.4281
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 3.2032 | Val Acc: 0.4398 | Test Acc: 0.4334
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 3.1956 | Val Acc: 0.4402 | Test Acc: 0.4332
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 3.1884 | Val Acc: 0.4349 | Test Acc: 0.4286
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 3.1820 | Val Acc: 0.4424 | Test Acc: 0.4349
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 3.1750 | Val Acc: 0.4540 | Test Acc: 0.4462
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 3.1694 | Val Acc: 0.4617 | Test Acc: 0.4548
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 3.1631 | Val Acc: 0.4620 | Test Acc: 0.4569
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 3.1558 | Val Acc: 0.4721 | Test Acc: 0.4674
+
+=== Training Complete ===
+-> Best Val Acc for OGB-Arxiv: 0.4721, Test Acc @ Best Val: 0.4674
+Cleaning up memory...
+
+for model=GAT dataset=Reddit
+[2025-08-16 06:16:41] Training model=GAT dataset=Reddit
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='GAT', dataset='Reddit', epochs=20, lr=0.005, hidden_channels=64, dropout=0.6, weight_decay=0.0005, num_layers=2, aggr='mean', heads=4, time_dim=32, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/GAT_Reddit.pt', config='saved_models/GAT_Reddit_params.json', num_parts=4)
+
+--- Loading Reddit ---
+✅ Dataset 'Reddit' loaded successfully.
+   Nodes: 232965, Edges: 114615892
+   Features: 602, Classes: 41
+   Train nodes: 153431, Val nodes: 23831, Test nodes: 55703
+Skipping SMOTE for this configuration to avoid memory blow-up.
+
+Model Initialized: GAT
+Using NeighborSampler for mini-batch training.
+
+=== Training GAT on Reddit for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 0.6528 | Val Acc: 0.9245 | Test Acc: N/A
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 0.5913 | Val Acc: 0.9235 | Test Acc: N/A
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 0.5959 | Val Acc: 0.9265 | Test Acc: N/A
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 0.5911 | Val Acc: 0.9264 | Test Acc: N/A
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 0.5945 | Val Acc: 0.9267 | Test Acc: N/A
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 0.5933 | Val Acc: 0.9218 | Test Acc: N/A
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.5893 | Val Acc: 0.9201 | Test Acc: N/A
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.5947 | Val Acc: 0.9255 | Test Acc: N/A
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.5892 | Val Acc: 0.9209 | Test Acc: N/A
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.5942 | Val Acc: 0.9252 | Test Acc: N/A
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.5931 | Val Acc: 0.9240 | Test Acc: N/A
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.5974 | Val Acc: 0.9239 | Test Acc: N/A
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.5986 | Val Acc: 0.9273 | Test Acc: N/A
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.6060 | Val Acc: 0.9243 | Test Acc: N/A
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.5990 | Val Acc: 0.9240 | Test Acc: N/A
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.5937 | Val Acc: 0.9235 | Test Acc: N/A
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.5899 | Val Acc: 0.9243 | Test Acc: N/A
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.5912 | Val Acc: 0.9259 | Test Acc: N/A
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.5888 | Val Acc: 0.9228 | Test Acc: N/A
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.5947 | Val Acc: 0.9246 | Test Acc: N/A
+
+=== Training Complete ===
+-> Best Val Acc for Reddit: 0.9273
+   (To get final test accuracy, load best model and run on a test loader)
+Cleaning up memory...
+
+for model=GAT dataset=TGB-Wiki
+[2025-08-16 06:24:49] Training model=GAT dataset=TGB-Wiki
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='GAT', dataset='TGB-Wiki', epochs=20, lr=0.01, hidden_channels=32, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=4, time_dim=32, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/GAT_TGB-Wiki.pt', config='saved_models/GAT_TGB-Wiki_params.json', num_parts=4)
+
+--- Loading TGB-Wiki ---
+✅ Dataset 'TGB-Wiki' loaded successfully.
+   Nodes: 11701, Edges: 431726
+   Features: 300, Classes: 10
+   Train nodes: 5116, Val nodes: 5845, Test nodes: 5847
+
+Model Initialized: GAT
+
+=== Training GAT on TGB-Wiki for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 1.3410 | Val Acc: 0.7778 | Test Acc: 0.7582
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 1.3698 | Val Acc: 0.7843 | Test Acc: 0.7676
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 1.3560 | Val Acc: 0.7817 | Test Acc: 0.7652
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 1.3163 | Val Acc: 0.7899 | Test Acc: 0.7718
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 1.3194 | Val Acc: 0.7920 | Test Acc: 0.7734
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 1.2884 | Val Acc: 0.7880 | Test Acc: 0.7720
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 1.2734 | Val Acc: 0.8063 | Test Acc: 0.7895
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 1.2799 | Val Acc: 0.8062 | Test Acc: 0.7908
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 1.2737 | Val Acc: 0.7981 | Test Acc: 0.7816
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 1.2579 | Val Acc: 0.7976 | Test Acc: 0.7778
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 1.2434 | Val Acc: 0.8043 | Test Acc: 0.7823
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 1.2625 | Val Acc: 0.8099 | Test Acc: 0.7883
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 1.2496 | Val Acc: 0.8139 | Test Acc: 0.7917
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 1.2427 | Val Acc: 0.8140 | Test Acc: 0.7886
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 1.2347 | Val Acc: 0.8149 | Test Acc: 0.7876
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 1.2319 | Val Acc: 0.8108 | Test Acc: 0.7866
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 1.2126 | Val Acc: 0.8137 | Test Acc: 0.7903
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 1.2025 | Val Acc: 0.8152 | Test Acc: 0.7925
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 1.2073 | Val Acc: 0.8180 | Test Acc: 0.7963
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 1.2012 | Val Acc: 0.8152 | Test Acc: 0.7922
+
+=== Training Complete ===
+-> Best Val Acc for TGB-Wiki: 0.8180, Test Acc @ Best Val: 0.7963
+Cleaning up memory...
+
+for model=GAT dataset=MOOC
+[2025-08-16 06:24:54] Training model=GAT dataset=MOOC
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='GAT', dataset='MOOC', epochs=20, lr=0.005, hidden_channels=64, dropout=0.6, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/GAT_MOOC.pt', config='saved_models/GAT_MOOC_params.json', num_parts=4)
+
+--- Loading MOOC ---
+✅ Dataset 'MOOC' loaded successfully.
+   Nodes: 418799, Edges: 411750
+   Features: 4, Classes: 2
+   Train nodes: 251279, Val nodes: 83760, Test nodes: 83760
+Skipping SMOTE for this configuration to avoid memory blow-up.
+
+Model Initialized: GAT
+
+=== Training GAT on MOOC for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 0.6870 | Val Acc: 0.8318 | Test Acc: 0.8314
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 0.6505 | Val Acc: 0.9899 | Test Acc: 0.9899
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 0.6202 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 0.5964 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 0.5751 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 0.5569 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.5383 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.5226 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.5069 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.4910 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.4777 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.4632 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.4514 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.4401 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.4307 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.4217 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.4138 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.4073 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.4011 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.3958 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+=== Training Complete ===
+-> Best Val Acc for MOOC: 0.9902, Test Acc @ Best Val: 0.9900
+Cleaning up memory...
+
+for model=TGAT dataset=OGB-Arxiv
+[2025-08-16 06:24:58] Training model=TGAT dataset=OGB-Arxiv
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='TGAT', dataset='OGB-Arxiv', epochs=20, lr=0.001, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=4, time_dim=64, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/TGAT_OGB-Arxiv.pt', config='saved_models/TGAT_OGB-Arxiv_params.json', num_parts=4)
+
+--- Loading OGB-Arxiv ---
+✅ Dataset 'OGB-Arxiv' loaded successfully.
+   Nodes: 169343, Edges: 1166243
+   Features: 128, Classes: 40
+   Train nodes: 101605, Val nodes: 33869, Test nodes: 33869
+
+Model Initialized: TGAT
+
+=== Training TGAT on OGB-Arxiv for 20 epochs ===
+
+--- Epoch 1/20 ---
+!!! CUDA OutOfMemoryError detected during full-batch training !!!
+CUDA out of memory. Tried to allocate 1.64 GiB. GPU 0 has a total capacity of 23.69 GiB of which 578.94 MiB is free. Process 519667 has 2.90 GiB memory in use. Including non-PyTorch memory, this process has 20.21 GiB memory in use. Of the allocated memory 16.19 GiB is allocated by PyTorch, and 3.72 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+[Before fallback] GPU Mem: free=0.57 GiB / total=23.69 GiB
+Tip: You can also set PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to reduce fragmentation.
+--> Trying partitioned training with 2 parts
+[Partition 1/2] nodes=363488, edges=974571 -> training...
+XX Still OOM with 2 parts. Increasing partitions...
+CUDA out of memory. Tried to allocate 952.00 MiB. GPU 0 has a total capacity of 23.69 GiB of which 138.94 MiB is free. Process 519667 has 2.90 GiB memory in use. Including non-PyTorch memory, this process has 20.64 GiB memory in use. Of the allocated memory 18.91 GiB is allocated by PyTorch, and 1.43 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+--> Trying partitioned training with 4 parts
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+--> Fallback succeeded with 4 parts. Will use this setting for remaining epochs.
+Epoch 01 | Loss: 2.9544 | Val Acc: 0.3249 | Test Acc: 0.3268 | Partitions: 4
+
+--- Epoch 2/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 02 | Loss: 2.7336 | Val Acc: 0.3418 | Test Acc: 0.3460 | Partitions: 4
+
+--- Epoch 3/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 03 | Loss: 2.6727 | Val Acc: 0.3491 | Test Acc: 0.3570 | Partitions: 4
+
+--- Epoch 4/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 04 | Loss: 2.6177 | Val Acc: 0.3589 | Test Acc: 0.3656 | Partitions: 4
+
+--- Epoch 5/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 05 | Loss: 2.5687 | Val Acc: 0.3737 | Test Acc: 0.3803 | Partitions: 4
+
+--- Epoch 6/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 06 | Loss: 2.5273 | Val Acc: 0.3864 | Test Acc: 0.3916 | Partitions: 4
+
+--- Epoch 7/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 07 | Loss: 2.4906 | Val Acc: 0.3931 | Test Acc: 0.3985 | Partitions: 4
+
+--- Epoch 8/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 08 | Loss: 2.4518 | Val Acc: 0.3949 | Test Acc: 0.4030 | Partitions: 4
+
+--- Epoch 9/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 09 | Loss: 2.4128 | Val Acc: 0.3990 | Test Acc: 0.4067 | Partitions: 4
+
+--- Epoch 10/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 10 | Loss: 2.3784 | Val Acc: 0.4042 | Test Acc: 0.4114 | Partitions: 4
+
+--- Epoch 11/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 11 | Loss: 2.3443 | Val Acc: 0.4111 | Test Acc: 0.4173 | Partitions: 4
+
+--- Epoch 12/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 12 | Loss: 2.3136 | Val Acc: 0.4144 | Test Acc: 0.4207 | Partitions: 4
+
+--- Epoch 13/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 13 | Loss: 2.2880 | Val Acc: 0.4160 | Test Acc: 0.4237 | Partitions: 4
+
+--- Epoch 14/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 14 | Loss: 2.2612 | Val Acc: 0.4179 | Test Acc: 0.4260 | Partitions: 4
+
+--- Epoch 15/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 15 | Loss: 2.2386 | Val Acc: 0.4211 | Test Acc: 0.4289 | Partitions: 4
+
+--- Epoch 16/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 16 | Loss: 2.2163 | Val Acc: 0.4240 | Test Acc: 0.4307 | Partitions: 4
+
+--- Epoch 17/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 17 | Loss: 2.1960 | Val Acc: 0.4256 | Test Acc: 0.4317 | Partitions: 4
+
+--- Epoch 18/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 18 | Loss: 2.1780 | Val Acc: 0.4283 | Test Acc: 0.4333 | Partitions: 4
+
+--- Epoch 19/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 19 | Loss: 2.1602 | Val Acc: 0.4298 | Test Acc: 0.4362 | Partitions: 4
+
+--- Epoch 20/20 ---
+[OOM-Fallback ACTIVE] Training with 4 partitions
+[Partition 1/4] nodes=181744, edges=628789 -> training...
+[Partition 2/4] nodes=181744, edges=177208 -> training...
+[Partition 3/4] nodes=181744, edges=176798 -> training...
+[Partition 4/4] nodes=181746, edges=176163 -> training...
+[Partition 1/4] evaluating...
+[Partition 2/4] evaluating...
+[Partition 3/4] evaluating...
+[Partition 4/4] evaluating...
+Epoch 20 | Loss: 2.1448 | Val Acc: 0.4316 | Test Acc: 0.4378 | Partitions: 4
+
+=== Training Complete ===
+-> Best Val Acc for OGB-Arxiv: 0.4316, Test Acc @ Best Val: 0.4378
+   OOM-fallback was active with 4 partitions.
+Cleaning up memory...
+
+for model=TGAT dataset=Reddit
+[2025-08-16 06:25:26] Training model=TGAT dataset=Reddit
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='TGAT', dataset='Reddit', epochs=20, lr=0.001, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/TGAT_Reddit.pt', config='saved_models/TGAT_Reddit_params.json', num_parts=4)
+
+--- Loading Reddit ---
+✅ Dataset 'Reddit' loaded successfully.
+   Nodes: 232965, Edges: 114615892
+   Features: 602, Classes: 41
+   Train nodes: 153431, Val nodes: 23831, Test nodes: 55703
+Skipping SMOTE for this configuration to avoid memory blow-up.
+
+Model Initialized: TGAT
+Using NeighborSampler for mini-batch training.
+
+=== Training TGAT on Reddit for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 0.2946 | Val Acc: 0.9527 | Test Acc: N/A
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 0.2381 | Val Acc: 0.9576 | Test Acc: N/A
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 0.2260 | Val Acc: 0.9576 | Test Acc: N/A
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 0.2199 | Val Acc: 0.9586 | Test Acc: N/A
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 0.2156 | Val Acc: 0.9582 | Test Acc: N/A
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 0.2231 | Val Acc: 0.9557 | Test Acc: N/A
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.2280 | Val Acc: 0.9572 | Test Acc: N/A
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.2182 | Val Acc: 0.9580 | Test Acc: N/A
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.2100 | Val Acc: 0.9584 | Test Acc: N/A
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.2119 | Val Acc: 0.9570 | Test Acc: N/A
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.2148 | Val Acc: 0.9566 | Test Acc: N/A
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.2181 | Val Acc: 0.9569 | Test Acc: N/A
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.2113 | Val Acc: 0.9578 | Test Acc: N/A
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.2090 | Val Acc: 0.9568 | Test Acc: N/A
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.2077 | Val Acc: 0.9585 | Test Acc: N/A
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.2054 | Val Acc: 0.9581 | Test Acc: N/A
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.2058 | Val Acc: 0.9585 | Test Acc: N/A
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.2069 | Val Acc: 0.9585 | Test Acc: N/A
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.2071 | Val Acc: 0.9583 | Test Acc: N/A
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.2079 | Val Acc: 0.9582 | Test Acc: N/A
+
+=== Training Complete ===
+-> Best Val Acc for Reddit: 0.9586
+   (To get final test accuracy, load best model and run on a test loader)
+Cleaning up memory...
+
+for model=TGAT dataset=TGB-Wiki
+[2025-08-16 06:33:33] Training model=TGAT dataset=TGB-Wiki
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='TGAT', dataset='TGB-Wiki', epochs=20, lr=0.001, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=4, time_dim=64, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/TGAT_TGB-Wiki.pt', config='saved_models/TGAT_TGB-Wiki_params.json', num_parts=4)
+
+--- Loading TGB-Wiki ---
+✅ Dataset 'TGB-Wiki' loaded successfully.
+   Nodes: 11701, Edges: 431726
+   Features: 300, Classes: 10
+   Train nodes: 5116, Val nodes: 5845, Test nodes: 5847
+
+Model Initialized: TGAT
+
+=== Training TGAT on TGB-Wiki for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 0.8499 | Val Acc: 0.7588 | Test Acc: 0.7431
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 0.8101 | Val Acc: 0.7600 | Test Acc: 0.7412
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 0.7748 | Val Acc: 0.7656 | Test Acc: 0.7481
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 0.7482 | Val Acc: 0.7766 | Test Acc: 0.7600
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 0.7243 | Val Acc: 0.7825 | Test Acc: 0.7638
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 0.6995 | Val Acc: 0.7837 | Test Acc: 0.7650
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.6777 | Val Acc: 0.7824 | Test Acc: 0.7650
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.6583 | Val Acc: 0.7868 | Test Acc: 0.7671
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.6456 | Val Acc: 0.7920 | Test Acc: 0.7741
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.6299 | Val Acc: 0.7945 | Test Acc: 0.7783
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.6152 | Val Acc: 0.7957 | Test Acc: 0.7785
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.6012 | Val Acc: 0.7952 | Test Acc: 0.7768
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.5906 | Val Acc: 0.7956 | Test Acc: 0.7772
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.5821 | Val Acc: 0.7979 | Test Acc: 0.7806
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.5754 | Val Acc: 0.8015 | Test Acc: 0.7828
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.5641 | Val Acc: 0.8031 | Test Acc: 0.7850
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.5633 | Val Acc: 0.8043 | Test Acc: 0.7854
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.5478 | Val Acc: 0.8044 | Test Acc: 0.7869
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.5431 | Val Acc: 0.8065 | Test Acc: 0.7888
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.5324 | Val Acc: 0.8094 | Test Acc: 0.7905
+
+=== Training Complete ===
+-> Best Val Acc for TGB-Wiki: 0.8094, Test Acc @ Best Val: 0.7905
+Cleaning up memory...
+
+for model=TGAT dataset=MOOC
+[2025-08-16 06:33:39] Training model=TGAT dataset=MOOC
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='TGAT', dataset='MOOC', epochs=20, lr=0.001, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=64, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/TGAT_MOOC.pt', config='saved_models/TGAT_MOOC_params.json', num_parts=4)
+
+--- Loading MOOC ---
+✅ Dataset 'MOOC' loaded successfully.
+   Nodes: 418799, Edges: 411750
+   Features: 4, Classes: 2
+   Train nodes: 251279, Val nodes: 83760, Test nodes: 83760
+Skipping SMOTE for this configuration to avoid memory blow-up.
+
+Model Initialized: TGAT
+
+=== Training TGAT on MOOC for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 0.1942 | Val Acc: 0.9731 | Test Acc: 0.9731
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 0.1564 | Val Acc: 0.9732 | Test Acc: 0.9732
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 0.1258 | Val Acc: 0.9733 | Test Acc: 0.9733
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 0.1047 | Val Acc: 0.9733 | Test Acc: 0.9733
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 0.0880 | Val Acc: 0.9772 | Test Acc: 0.9768
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 0.0775 | Val Acc: 0.9896 | Test Acc: 0.9894
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.0709 | Val Acc: 0.9901 | Test Acc: 0.9901
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.0651 | Val Acc: 0.9901 | Test Acc: 0.9901
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.0620 | Val Acc: 0.9901 | Test Acc: 0.9901
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.0616 | Val Acc: 0.9901 | Test Acc: 0.9901
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.0609 | Val Acc: 0.9901 | Test Acc: 0.9901
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.0602 | Val Acc: 0.9901 | Test Acc: 0.9901
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.0601 | Val Acc: 0.9901 | Test Acc: 0.9901
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.0607 | Val Acc: 0.9901 | Test Acc: 0.9901
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.0600 | Val Acc: 0.9901 | Test Acc: 0.9901
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.0600 | Val Acc: 0.9901 | Test Acc: 0.9901
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.0601 | Val Acc: 0.9901 | Test Acc: 0.9901
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.0609 | Val Acc: 0.9901 | Test Acc: 0.9901
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.0597 | Val Acc: 0.9901 | Test Acc: 0.9901
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.0596 | Val Acc: 0.9901 | Test Acc: 0.9901
+
+=== Training Complete ===
+-> Best Val Acc for MOOC: 0.9901, Test Acc @ Best Val: 0.9901
+Cleaning up memory...
+
+for model=TGN dataset=OGB-Arxiv
+[2025-08-16 06:33:44] Training model=TGN dataset=OGB-Arxiv
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='TGN', dataset='OGB-Arxiv', epochs=20, lr=0.001, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=300, encoder=64, tau=0.9, k=2, load_model='saved_models/TGN_OGB-Arxiv.pt', config='saved_models/TGN_OGB-Arxiv_params.json', num_parts=4)
+
+--- Loading OGB-Arxiv ---
+✅ Dataset 'OGB-Arxiv' loaded successfully.
+   Nodes: 169343, Edges: 1166243
+   Features: 128, Classes: 40
+   Train nodes: 101605, Val nodes: 33869, Test nodes: 33869
+Skipping SMOTE for this configuration to avoid memory blow-up.
+Warning: Skipping mismatched keys during checkpoint load:
+  - memory.memory: checkpoint (181096, 300) -> model (169343, 300)
+  - memory.last_update: checkpoint (181096,) -> model (169343,)
+
+Model Initialized: TGN
+
+=== Training TGN on OGB-Arxiv for 20 epochs ===
+
+--- Epoch 1/20 ---
+!!! CUDA OutOfMemoryError detected during full-batch training !!!
+CUDA out of memory. Tried to allocate 6.52 GiB. GPU 0 has a total capacity of 23.69 GiB of which 2.98 GiB is free. Process 519667 has 2.90 GiB memory in use. Including non-PyTorch memory, this process has 17.80 GiB memory in use. Of the allocated memory 17.47 GiB is allocated by PyTorch, and 25.37 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+[Before fallback] GPU Mem: free=2.98 GiB / total=23.69 GiB
+Tip: You can also set PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to reduce fragmentation.
+--> Trying partitioned training with 2 parts
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+--> Fallback succeeded with 2 parts. Will use this setting for remaining epochs.
+Epoch 01 | Loss: 4.2041 | Val Acc: 0.0683 | Test Acc: 0.0696 | Partitions: 2
+
+--- Epoch 2/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 02 | Loss: 4.3502 | Val Acc: 0.0683 | Test Acc: 0.0696 | Partitions: 2
+
+--- Epoch 3/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 03 | Loss: 4.1326 | Val Acc: 0.1014 | Test Acc: 0.1074 | Partitions: 2
+
+--- Epoch 4/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 04 | Loss: 3.8909 | Val Acc: 0.1014 | Test Acc: 0.1074 | Partitions: 2
+
+--- Epoch 5/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 05 | Loss: 3.7052 | Val Acc: 0.1014 | Test Acc: 0.1074 | Partitions: 2
+
+--- Epoch 6/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 06 | Loss: 3.5799 | Val Acc: 0.1014 | Test Acc: 0.1074 | Partitions: 2
+
+--- Epoch 7/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 07 | Loss: 3.4989 | Val Acc: 0.1014 | Test Acc: 0.1074 | Partitions: 2
+
+--- Epoch 8/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 08 | Loss: 3.4420 | Val Acc: 0.1014 | Test Acc: 0.1074 | Partitions: 2
+
+--- Epoch 9/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 09 | Loss: 3.3952 | Val Acc: 0.1014 | Test Acc: 0.1074 | Partitions: 2
+
+--- Epoch 10/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 10 | Loss: 3.3507 | Val Acc: 0.1014 | Test Acc: 0.1074 | Partitions: 2
+
+--- Epoch 11/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 11 | Loss: 3.3069 | Val Acc: 0.1014 | Test Acc: 0.1074 | Partitions: 2
+
+--- Epoch 12/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 12 | Loss: 3.2666 | Val Acc: 0.0960 | Test Acc: 0.1025 | Partitions: 2
+
+--- Epoch 13/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 13 | Loss: 3.2355 | Val Acc: 0.1019 | Test Acc: 0.1059 | Partitions: 2
+
+--- Epoch 14/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 14 | Loss: 3.2161 | Val Acc: 0.1078 | Test Acc: 0.1104 | Partitions: 2
+
+--- Epoch 15/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 15 | Loss: 3.2066 | Val Acc: 0.1158 | Test Acc: 0.1177 | Partitions: 2
+
+--- Epoch 16/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 16 | Loss: 3.2007 | Val Acc: 0.1158 | Test Acc: 0.1177 | Partitions: 2
+
+--- Epoch 17/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 17 | Loss: 3.1934 | Val Acc: 0.1158 | Test Acc: 0.1177 | Partitions: 2
+
+--- Epoch 18/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 18 | Loss: 3.1824 | Val Acc: 0.1158 | Test Acc: 0.1177 | Partitions: 2
+
+--- Epoch 19/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 19 | Loss: 3.1694 | Val Acc: 0.1158 | Test Acc: 0.1177 | Partitions: 2
+
+--- Epoch 20/20 ---
+[OOM-Fallback ACTIVE] Training with 2 partitions
+[Partition 1/2] nodes=84670, edges=301328 -> training...
+[Partition 2/2] nodes=84673, edges=281558 -> training...
+[Partition 1/2] evaluating...
+[Partition 2/2] evaluating...
+Epoch 20 | Loss: 3.1557 | Val Acc: 0.1158 | Test Acc: 0.1177 | Partitions: 2
+
+=== Training Complete ===
+-> Best Val Acc for OGB-Arxiv: 0.1158, Test Acc @ Best Val: 0.1177
+   OOM-fallback was active with 2 partitions.
+Cleaning up memory...
+
+for model=TGN dataset=Reddit
+[2025-08-16 06:34:00] Training model=TGN dataset=Reddit
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='TGN', dataset='Reddit', epochs=20, lr=0.001, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/TGN_Reddit.pt', config='saved_models/TGN_Reddit_params.json', num_parts=4)
+
+--- Loading Reddit ---
+✅ Dataset 'Reddit' loaded successfully.
+   Nodes: 232965, Edges: 114615892
+   Features: 602, Classes: 41
+   Train nodes: 153431, Val nodes: 23831, Test nodes: 55703
+Skipping SMOTE for this configuration to avoid memory blow-up.
+Warning: Skipping mismatched keys during checkpoint load:
+  - memory.memory: checkpoint (756690, 100) -> model (232965, 100)
+  - memory.last_update: checkpoint (756690,) -> model (232965,)
+
+Model Initialized: TGN
+Using NeighborSampler for mini-batch training.
+
+=== Training TGN on Reddit for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 3.4121 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 3.4054 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 3.4109 | Val Acc: 0.1490 | Test Acc: N/A
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 3.4152 | Val Acc: 0.1468 | Test Acc: N/A
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 3.4200 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 3.4228 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 3.4239 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 3.4242 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 3.4243 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 3.4244 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 3.4244 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 3.4244 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 3.4244 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 3.4246 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 3.4244 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 3.4244 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 3.4245 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 3.4244 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 3.4246 | Val Acc: 0.1466 | Test Acc: N/A
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 3.4246 | Val Acc: 0.1466 | Test Acc: N/A
+
+=== Training Complete ===
+-> Best Val Acc for Reddit: 0.1490
+   (To get final test accuracy, load best model and run on a test loader)
+Cleaning up memory...
+
+for model=TGN dataset=TGB-Wiki
+[2025-08-16 06:42:06] Training model=TGN dataset=TGB-Wiki
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='TGN', dataset='TGB-Wiki', epochs=20, lr=0.001, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=300, encoder=128, tau=0.9, k=2, load_model='saved_models/TGN_TGB-Wiki.pt', config='saved_models/TGN_TGB-Wiki_params.json', num_parts=4)
+
+--- Loading TGB-Wiki ---
+✅ Dataset 'TGB-Wiki' loaded successfully.
+   Nodes: 11701, Edges: 431726
+   Features: 300, Classes: 10
+   Train nodes: 5116, Val nodes: 5845, Test nodes: 5847
+Skipping SMOTE for this configuration to avoid memory blow-up.
+Warning: Skipping mismatched keys during checkpoint load:
+  - memory.memory: checkpoint (18245, 300) -> model (11701, 300)
+  - memory.last_update: checkpoint (18245,) -> model (11701,)
+
+Model Initialized: TGN
+
+=== Training TGN on TGB-Wiki for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 2.2971 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 2.2472 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 2.1940 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 2.1476 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 2.1137 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 2.0931 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 2.0901 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 2.0961 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 2.1033 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 2.1053 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 2.1015 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 2.0956 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 2.0915 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 2.0902 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 2.0911 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 2.0926 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 2.0922 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 2.0911 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 2.0889 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 2.0858 | Val Acc: 0.2287 | Test Acc: 0.2290
+
+=== Training Complete ===
+-> Best Val Acc for TGB-Wiki: 0.2287, Test Acc @ Best Val: 0.2290
+Cleaning up memory...
+
+for model=TGN dataset=MOOC
+[2025-08-16 06:42:14] Training model=TGN dataset=MOOC
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='TGN', dataset='MOOC', epochs=20, lr=0.001, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=150, encoder=64, tau=0.9, k=2, load_model='saved_models/TGN_MOOC.pt', config='saved_models/TGN_MOOC_params.json', num_parts=4)
+
+--- Loading MOOC ---
+✅ Dataset 'MOOC' loaded successfully.
+   Nodes: 418799, Edges: 411750
+   Features: 4, Classes: 2
+   Train nodes: 251279, Val nodes: 83760, Test nodes: 83760
+Skipping SMOTE for this configuration to avoid memory blow-up.
+Warning: Skipping mismatched keys during checkpoint load:
+  - memory.memory: checkpoint (665254, 150) -> model (418799, 150)
+  - memory.last_update: checkpoint (665254,) -> model (418799,)
+
+Model Initialized: TGN
+
+=== Training TGN on MOOC for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 0.4694 | Val Acc: 0.9731 | Test Acc: 0.9736
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 0.4618 | Val Acc: 0.9731 | Test Acc: 0.9736
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 0.4468 | Val Acc: 0.9731 | Test Acc: 0.9736
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 0.4301 | Val Acc: 0.9731 | Test Acc: 0.9736
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 0.4132 | Val Acc: 0.9731 | Test Acc: 0.9736
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 0.3966 | Val Acc: 0.9731 | Test Acc: 0.9736
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.3803 | Val Acc: 0.9731 | Test Acc: 0.9736
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.3646 | Val Acc: 0.9731 | Test Acc: 0.9736
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.3493 | Val Acc: 0.9731 | Test Acc: 0.9736
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.3346 | Val Acc: 0.9731 | Test Acc: 0.9736
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.3203 | Val Acc: 0.9907 | Test Acc: 0.9901
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.3067 | Val Acc: 0.9907 | Test Acc: 0.9901
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.2936 | Val Acc: 0.9907 | Test Acc: 0.9901
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.2809 | Val Acc: 0.9907 | Test Acc: 0.9901
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.2689 | Val Acc: 0.9907 | Test Acc: 0.9901
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.2574 | Val Acc: 0.9907 | Test Acc: 0.9901
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.2465 | Val Acc: 0.9907 | Test Acc: 0.9901
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.2360 | Val Acc: 0.9907 | Test Acc: 0.9901
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.2261 | Val Acc: 0.9907 | Test Acc: 0.9901
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.2165 | Val Acc: 0.9907 | Test Acc: 0.9901
+
+=== Training Complete ===
+-> Best Val Acc for MOOC: 0.9907, Test Acc @ Best Val: 0.9901
+Cleaning up memory...
+
+for model=AGNNet dataset=OGB-Arxiv
+[2025-08-16 06:42:21] Training model=AGNNet dataset=OGB-Arxiv
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='AGNNet', dataset='OGB-Arxiv', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=1, load_model='saved_models/AGNNet_OGB-Arxiv.pt', config='saved_models/AGNNet_OGB-Arxiv_params.json', num_parts=4)
+
+--- Loading OGB-Arxiv ---
+✅ Dataset 'OGB-Arxiv' loaded successfully.
+   Nodes: 169343, Edges: 1166243
+   Features: 128, Classes: 40
+   Train nodes: 101605, Val nodes: 33869, Test nodes: 33869
+
+Model Initialized: AGNNet
+
+=== Training AGNNet on OGB-Arxiv for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 3.9814 | Val Acc: 0.1565 | Test Acc: 0.1535
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 3.7644 | Val Acc: 0.1565 | Test Acc: 0.1535
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 3.7245 | Val Acc: 0.1565 | Test Acc: 0.1535
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 3.7081 | Val Acc: 0.1565 | Test Acc: 0.1535
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 3.6988 | Val Acc: 0.1565 | Test Acc: 0.1535
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 3.6882 | Val Acc: 0.1565 | Test Acc: 0.1535
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 3.6874 | Val Acc: 0.1545 | Test Acc: 0.1521
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 3.6847 | Val Acc: 0.1439 | Test Acc: 0.1421
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 3.6842 | Val Acc: 0.1234 | Test Acc: 0.1218
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 3.6839 | Val Acc: 0.1033 | Test Acc: 0.1015
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 3.6826 | Val Acc: 0.0352 | Test Acc: 0.0374
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 3.6793 | Val Acc: 0.0277 | Test Acc: 0.0296
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 3.6750 | Val Acc: 0.0238 | Test Acc: 0.0250
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 3.6691 | Val Acc: 0.0033 | Test Acc: 0.0037
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 3.6647 | Val Acc: 0.0057 | Test Acc: 0.0058
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 3.6624 | Val Acc: 0.0032 | Test Acc: 0.0037
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 3.6595 | Val Acc: 0.0033 | Test Acc: 0.0037
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 3.6597 | Val Acc: 0.0060 | Test Acc: 0.0063
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 3.6070 | Val Acc: 0.0055 | Test Acc: 0.0062
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 3.6009 | Val Acc: 0.0055 | Test Acc: 0.0063
+
+=== Training Complete ===
+-> Best Val Acc for OGB-Arxiv: 0.1565, Test Acc @ Best Val: 0.1535
+Cleaning up memory...
+
+for model=AGNNet dataset=Reddit
+[2025-08-16 06:42:29] Training model=AGNNet dataset=Reddit
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='AGNNet', dataset='Reddit', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/AGNNet_Reddit.pt', config='saved_models/AGNNet_Reddit_params.json', num_parts=4)
+
+--- Loading Reddit ---
+✅ Dataset 'Reddit' loaded successfully.
+   Nodes: 232965, Edges: 114615892
+   Features: 602, Classes: 41
+   Train nodes: 153431, Val nodes: 23831, Test nodes: 55703
+Skipping SMOTE for this configuration to avoid memory blow-up.
+
+Model Initialized: AGNNet
+Using NeighborSampler for mini-batch training.
+
+=== Training AGNNet on Reddit for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 1.3366 | Val Acc: 0.7802 | Test Acc: N/A
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 1.1132 | Val Acc: 0.8193 | Test Acc: N/A
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 1.0381 | Val Acc: 0.8023 | Test Acc: N/A
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 0.9862 | Val Acc: 0.8426 | Test Acc: N/A
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 0.9514 | Val Acc: 0.8498 | Test Acc: N/A
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 0.9128 | Val Acc: 0.8546 | Test Acc: N/A
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.8954 | Val Acc: 0.8575 | Test Acc: N/A
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.8866 | Val Acc: 0.8622 | Test Acc: N/A
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.8766 | Val Acc: 0.8590 | Test Acc: N/A
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.8693 | Val Acc: 0.8651 | Test Acc: N/A
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.8596 | Val Acc: 0.8680 | Test Acc: N/A
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.8420 | Val Acc: 0.8688 | Test Acc: N/A
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.8496 | Val Acc: 0.8673 | Test Acc: N/A
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.8431 | Val Acc: 0.8694 | Test Acc: N/A
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.8417 | Val Acc: 0.8671 | Test Acc: N/A
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.8345 | Val Acc: 0.8729 | Test Acc: N/A
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.8271 | Val Acc: 0.8733 | Test Acc: N/A
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.8258 | Val Acc: 0.8744 | Test Acc: N/A
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.8247 | Val Acc: 0.8731 | Test Acc: N/A
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.8191 | Val Acc: 0.8607 | Test Acc: N/A
+
+=== Training Complete ===
+-> Best Val Acc for Reddit: 0.8744
+   (To get final test accuracy, load best model and run on a test loader)
+Cleaning up memory...
+[2025-08-16 06:50:35] Hyperparameter search for model=AGNNet dataset=TGB-Wiki
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+
+--- Loading TGB-Wiki ---
+✅ Dataset 'TGB-Wiki' loaded successfully.
+   Nodes: 11701, Edges: 431726
+   Features: 300, Classes: 10
+   Train nodes: 5116, Val nodes: 5845, Test nodes: 5847
+
+=== Training AGNNet on TGB-Wiki for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 2.3048 | Val Acc: 0.1641 | Test Acc: 0.1650
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 2.3000 | Val Acc: 0.1716 | Test Acc: 0.1688
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 2.3041 | Val Acc: 0.1641 | Test Acc: 0.1650
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 2.2922 | Val Acc: 0.1949 | Test Acc: 0.1963
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 2.2871 | Val Acc: 0.1839 | Test Acc: 0.1842
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 2.2892 | Val Acc: 0.1846 | Test Acc: 0.1844
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 2.2908 | Val Acc: 0.2212 | Test Acc: 0.2179
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 2.2709 | Val Acc: 0.2178 | Test Acc: 0.2225
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 2.2491 | Val Acc: 0.0891 | Test Acc: 0.0973
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 2.2180 | Val Acc: 0.1622 | Test Acc: 0.1767
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 2.1655 | Val Acc: 0.2955 | Test Acc: 0.2942
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 2.1270 | Val Acc: 0.1203 | Test Acc: 0.1295
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 2.1950 | Val Acc: 0.2732 | Test Acc: 0.2673
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 2.1142 | Val Acc: 0.2009 | Test Acc: 0.1912
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 2.1538 | Val Acc: 0.3468 | Test Acc: 0.3523
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 2.1046 | Val Acc: 0.3875 | Test Acc: 0.3896
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 2.0543 | Val Acc: 0.2157 | Test Acc: 0.2066
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 2.0543 | Val Acc: 0.1471 | Test Acc: 0.1392
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 2.0435 | Val Acc: 0.2103 | Test Acc: 0.1987
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 1.9992 | Val Acc: 0.2621 | Test Acc: 0.2677
+
+=== Training Complete ===
+-> Best Val Acc for TGB-Wiki: 0.3875, Test Acc @ Best Val: 0.3896
+
+--- Loading TGB-Wiki ---
+✅ Dataset 'TGB-Wiki' loaded successfully.
+   Nodes: 11701, Edges: 431726
+   Features: 300, Classes: 10
+   Train nodes: 5116, Val nodes: 5845, Test nodes: 5847
+
+=== Training AGNNet on TGB-Wiki for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 2.2942 | Val Acc: 0.1641 | Test Acc: 0.1650
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 2.3092 | Val Acc: 0.1641 | Test Acc: 0.1650
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 2.3071 | Val Acc: 0.2648 | Test Acc: 0.2632
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 2.3044 | Val Acc: 0.1836 | Test Acc: 0.1840
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 2.3012 | Val Acc: 0.1836 | Test Acc: 0.1840
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 2.2956 | Val Acc: 0.2390 | Test Acc: 0.2352
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 2.2867 | Val Acc: 0.2127 | Test Acc: 0.2056
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 2.2698 | Val Acc: 0.1699 | Test Acc: 0.1674
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 2.2411 | Val Acc: 0.1942 | Test Acc: 0.1963
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 2.1943 | Val Acc: 0.0898 | Test Acc: 0.0833
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 2.1326 | Val Acc: 0.0736 | Test Acc: 0.0711
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 2.0876 | Val Acc: 0.0611 | Test Acc: 0.0612
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 2.2094 | Val Acc: 0.0409 | Test Acc: 0.0412
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 2.0755 | Val Acc: 0.0282 | Test Acc: 0.0284
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 2.1370 | Val Acc: 0.0831 | Test Acc: 0.0778
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 2.0027 | Val Acc: 0.1174 | Test Acc: 0.1163
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 2.0102 | Val Acc: 0.1478 | Test Acc: 0.1490
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 2.0279 | Val Acc: 0.1796 | Test Acc: 0.1847
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 1.9645 | Val Acc: 0.1579 | Test Acc: 0.1633
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 1.9248 | Val Acc: 0.1338 | Test Acc: 0.1346
+
+=== Training Complete ===
+-> Best Val Acc for TGB-Wiki: 0.2648, Test Acc @ Best Val: 0.2632
+Saved best model to saved_models/AGNNet_TGB-Wiki.pt
+Saved params to saved_models/AGNNet_TGB-Wiki_params.json
+[2025-08-16 06:50:40] Training model=AGNNet dataset=TGB-Wiki
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='AGNNet', dataset='TGB-Wiki', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=2, load_model='saved_models/AGNNet_TGB-Wiki.pt', config='saved_models/AGNNet_TGB-Wiki_params.json', num_parts=4)
+
+--- Loading TGB-Wiki ---
+✅ Dataset 'TGB-Wiki' loaded successfully.
+   Nodes: 11701, Edges: 431726
+   Features: 300, Classes: 10
+   Train nodes: 5116, Val nodes: 5845, Test nodes: 5847
+
+Model Initialized: AGNNet
+
+=== Training AGNNet on TGB-Wiki for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 1.9731 | Val Acc: 0.0701 | Test Acc: 0.0741
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 2.8921 | Val Acc: 0.2950 | Test Acc: 0.3027
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 2.0318 | Val Acc: 0.2739 | Test Acc: 0.2709
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 2.1134 | Val Acc: 0.1644 | Test Acc: 0.1592
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 2.2503 | Val Acc: 0.2098 | Test Acc: 0.2100
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 2.2162 | Val Acc: 0.2814 | Test Acc: 0.2808
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 2.1676 | Val Acc: 0.2448 | Test Acc: 0.2504
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 2.1525 | Val Acc: 0.2002 | Test Acc: 0.1996
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 2.1465 | Val Acc: 0.2027 | Test Acc: 0.2015
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 2.1274 | Val Acc: 0.2547 | Test Acc: 0.2559
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 2.0961 | Val Acc: 0.3979 | Test Acc: 0.4014
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 2.0495 | Val Acc: 0.4715 | Test Acc: 0.4669
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 2.0173 | Val Acc: 0.4039 | Test Acc: 0.3987
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 1.9924 | Val Acc: 0.3608 | Test Acc: 0.3542
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 1.9590 | Val Acc: 0.3725 | Test Acc: 0.3667
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 1.9256 | Val Acc: 0.4132 | Test Acc: 0.4122
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 1.9180 | Val Acc: 0.4354 | Test Acc: 0.4337
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 1.9105 | Val Acc: 0.4727 | Test Acc: 0.4720
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 1.8965 | Val Acc: 0.5020 | Test Acc: 0.5023
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 1.8824 | Val Acc: 0.5254 | Test Acc: 0.5158
+
+=== Training Complete ===
+-> Best Val Acc for TGB-Wiki: 0.5254, Test Acc @ Best Val: 0.5158
+Cleaning up memory...
+[2025-08-16 06:50:45] Hyperparameter search for model=AGNNet dataset=MOOC
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+
+--- Loading MOOC ---
+✅ Dataset 'MOOC' loaded successfully.
+   Nodes: 418799, Edges: 411750
+   Features: 4, Classes: 2
+   Train nodes: 251279, Val nodes: 83760, Test nodes: 83760
+
+=== Training AGNNet on MOOC for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 0.7018 | Val Acc: 0.9902 | Test Acc: 0.9902
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 0.6931 | Val Acc: 0.9755 | Test Acc: 0.9753
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 0.6930 | Val Acc: 0.9758 | Test Acc: 0.9755
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 0.6929 | Val Acc: 0.9757 | Test Acc: 0.9755
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 0.6928 | Val Acc: 0.0321 | Test Acc: 0.0320
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 0.6928 | Val Acc: 0.0278 | Test Acc: 0.0270
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.6927 | Val Acc: 0.0343 | Test Acc: 0.0338
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.6927 | Val Acc: 0.0280 | Test Acc: 0.0275
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.6927 | Val Acc: 0.0288 | Test Acc: 0.0284
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.6927 | Val Acc: 0.0315 | Test Acc: 0.0307
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.6927 | Val Acc: 0.0310 | Test Acc: 0.0307
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.6927 | Val Acc: 0.0257 | Test Acc: 0.0250
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.6927 | Val Acc: 0.0325 | Test Acc: 0.0321
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.6927 | Val Acc: 0.0285 | Test Acc: 0.0279
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.6927 | Val Acc: 0.0275 | Test Acc: 0.0274
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.6927 | Val Acc: 0.0289 | Test Acc: 0.0282
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.6927 | Val Acc: 0.0311 | Test Acc: 0.0309
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.6927 | Val Acc: 0.0256 | Test Acc: 0.0253
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.6927 | Val Acc: 0.0316 | Test Acc: 0.0311
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.6928 | Val Acc: 0.0276 | Test Acc: 0.0271
+
+=== Training Complete ===
+-> Best Val Acc for MOOC: 0.9902, Test Acc @ Best Val: 0.9902
+
+--- Loading MOOC ---
+✅ Dataset 'MOOC' loaded successfully.
+   Nodes: 418799, Edges: 411750
+   Features: 4, Classes: 2
+   Train nodes: 251279, Val nodes: 83760, Test nodes: 83760
+
+=== Training AGNNet on MOOC for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 0.6726 | Val Acc: 0.9905 | Test Acc: 0.9904
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 0.6153 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 0.5475 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 0.4836 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 0.4562 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 0.4491 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.4451 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.4413 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.4374 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.4335 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.4296 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.4256 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.4217 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.4177 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.4138 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.4099 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.4060 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.4022 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.3983 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.3945 | Val Acc: 0.9733 | Test Acc: 0.9738
+
+=== Training Complete ===
+-> Best Val Acc for MOOC: 0.9905, Test Acc @ Best Val: 0.9904
+Saved best model to saved_models/AGNNet_MOOC.pt
+Saved params to saved_models/AGNNet_MOOC_params.json
+[2025-08-16 06:50:52] Training model=AGNNet dataset=MOOC
+/home/myid/mi71296/.venvs/agn/lib/python3.10/site-packages/torch/cuda/__init__.py:654: UserWarning: Can't initialize NVML
+  warnings.warn("Can't initialize NVML")
+Initial setup on device: cuda
+Configuration: Namespace(model='AGNNet', dataset='MOOC', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=1, load_model='saved_models/AGNNet_MOOC.pt', config='saved_models/AGNNet_MOOC_params.json', num_parts=4)
+
+--- Loading MOOC ---
+✅ Dataset 'MOOC' loaded successfully.
+   Nodes: 418799, Edges: 411750
+   Features: 4, Classes: 2
+   Train nodes: 251279, Val nodes: 83760, Test nodes: 83760
+Skipping SMOTE for this configuration to avoid memory blow-up.
+
+Model Initialized: AGNNet
+
+=== Training AGNNet on MOOC for 20 epochs ===
+
+--- Epoch 1/20 ---
+Epoch 01 | Loss: 0.4716 | Val Acc: 0.9735 | Test Acc: 0.9731
+
+--- Epoch 2/20 ---
+Epoch 02 | Loss: 0.4633 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 3/20 ---
+Epoch 03 | Loss: 0.4551 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 4/20 ---
+Epoch 04 | Loss: 0.4473 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 5/20 ---
+Epoch 05 | Loss: 0.4397 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 6/20 ---
+Epoch 06 | Loss: 0.4324 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 7/20 ---
+Epoch 07 | Loss: 0.4252 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 8/20 ---
+Epoch 08 | Loss: 0.4182 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 9/20 ---
+Epoch 09 | Loss: 0.4114 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 10/20 ---
+Epoch 10 | Loss: 0.4047 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 11/20 ---
+Epoch 11 | Loss: 0.4888 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 12/20 ---
+Epoch 12 | Loss: 0.4846 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 13/20 ---
+Epoch 13 | Loss: 0.4806 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 14/20 ---
+Epoch 14 | Loss: 0.4767 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 15/20 ---
+Epoch 15 | Loss: 0.4730 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 16/20 ---
+Epoch 16 | Loss: 0.6828 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 17/20 ---
+Epoch 17 | Loss: 0.6900 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 18/20 ---
+Epoch 18 | Loss: 0.6931 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 19/20 ---
+Epoch 19 | Loss: 0.6931 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+--- Epoch 20/20 ---
+Epoch 20 | Loss: 0.6932 | Val Acc: 0.9902 | Test Acc: 0.9900
+
+=== Training Complete ===
+-> Best Val Acc for MOOC: 0.9902, Test Acc @ Best Val: 0.9900
+Cleaning up memory...
+[DONE] All experiments completed.

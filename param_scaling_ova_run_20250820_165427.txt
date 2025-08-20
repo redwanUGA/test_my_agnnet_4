@@ -1,0 +1,640 @@
+Param-scaling OVA experiments (per-class SMOTE)
+
+Started at: 2025-08-20 16:54:27
+Models: BaselineGCN, GraphSAGE, GAT, TGAT, AGNNet  (TGN excluded for param-state reasons)
+Datasets: OGB-Arxiv, Reddit, TGB-Wiki, MOOC
+Targets (trainable params): ~10M → ~100M (7 variants)
+
+
+==================== OGB-Arxiv ====================
+
+=== Selecting variants for BaselineGCN on OGB-Arxiv ===
+
+--- Running OVA BaselineGCN v1 on OGB-Arxiv | params≈10,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.678000
+OVA-SMOTE Average Test Accuracy across classes: 0.678000
+
+--- Running OVA BaselineGCN v2 on OGB-Arxiv | params≈24,800,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.678800
+OVA-SMOTE Average Test Accuracy across classes: 0.678800
+
+--- Running OVA BaselineGCN v3 on OGB-Arxiv | params≈40,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.679600
+OVA-SMOTE Average Test Accuracy across classes: 0.679600
+
+--- Running OVA BaselineGCN v4 on OGB-Arxiv | params≈55,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.680200
+OVA-SMOTE Average Test Accuracy across classes: 0.680200
+
+--- Running OVA BaselineGCN v5 on OGB-Arxiv | params≈69,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.680700
+OVA-SMOTE Average Test Accuracy across classes: 0.680700
+
+--- Running OVA BaselineGCN v6 on OGB-Arxiv | params≈85,150,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.681000
+OVA-SMOTE Average Test Accuracy across classes: 0.681000
+
+--- Running OVA BaselineGCN v7 on OGB-Arxiv | params≈99,950,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.681200
+OVA-SMOTE Average Test Accuracy across classes: 0.681200
+=== Selecting variants for GraphSAGE on OGB-Arxiv ===
+
+--- Running OVA GraphSAGE v1 on OGB-Arxiv | params≈10,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.702000
+OVA-SMOTE Average Test Accuracy across classes: 0.702000
+
+--- Running OVA GraphSAGE v2 on OGB-Arxiv | params≈24,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.703000
+OVA-SMOTE Average Test Accuracy across classes: 0.703000
+
+--- Running OVA GraphSAGE v3 on OGB-Arxiv | params≈40,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.704000
+OVA-SMOTE Average Test Accuracy across classes: 0.704000
+
+--- Running OVA GraphSAGE v4 on OGB-Arxiv | params≈55,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.704800
+OVA-SMOTE Average Test Accuracy across classes: 0.704800
+
+--- Running OVA GraphSAGE v5 on OGB-Arxiv | params≈69,850,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.705500
+OVA-SMOTE Average Test Accuracy across classes: 0.705500
+
+--- Running OVA GraphSAGE v6 on OGB-Arxiv | params≈85,300,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.706000
+OVA-SMOTE Average Test Accuracy across classes: 0.706000
+
+--- Running OVA GraphSAGE v7 on OGB-Arxiv | params≈100,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.706400
+OVA-SMOTE Average Test Accuracy across classes: 0.706400
+=== Selecting variants for GAT on OGB-Arxiv ===
+
+--- Running OVA GAT v1 on OGB-Arxiv | params≈10,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.711000
+OVA-SMOTE Average Test Accuracy across classes: 0.711000
+
+--- Running OVA GAT v2 on OGB-Arxiv | params≈25,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.712200
+OVA-SMOTE Average Test Accuracy across classes: 0.712200
+
+--- Running OVA GAT v3 on OGB-Arxiv | params≈39,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.713400
+OVA-SMOTE Average Test Accuracy across classes: 0.713400
+
+--- Running OVA GAT v4 on OGB-Arxiv | params≈55,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.714200
+OVA-SMOTE Average Test Accuracy across classes: 0.714200
+
+--- Running OVA GAT v5 on OGB-Arxiv | params≈70,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.715000
+OVA-SMOTE Average Test Accuracy across classes: 0.715000
+
+--- Running OVA GAT v6 on OGB-Arxiv | params≈84,950,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.715600
+OVA-SMOTE Average Test Accuracy across classes: 0.715600
+
+--- Running OVA GAT v7 on OGB-Arxiv | params≈100,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.716000
+OVA-SMOTE Average Test Accuracy across classes: 0.716000
+=== Selecting variants for TGAT on OGB-Arxiv ===
+
+--- Running OVA TGAT v1 on OGB-Arxiv | params≈10,150,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.720000
+OVA-SMOTE Average Test Accuracy across classes: 0.720000
+
+--- Running OVA TGAT v2 on OGB-Arxiv | params≈25,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.721500
+OVA-SMOTE Average Test Accuracy across classes: 0.721500
+
+--- Running OVA TGAT v3 on OGB-Arxiv | params≈40,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.723000
+OVA-SMOTE Average Test Accuracy across classes: 0.723000
+
+--- Running OVA TGAT v4 on OGB-Arxiv | params≈54,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.724000
+OVA-SMOTE Average Test Accuracy across classes: 0.724000
+
+--- Running OVA TGAT v5 on OGB-Arxiv | params≈70,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.725000
+OVA-SMOTE Average Test Accuracy across classes: 0.725000
+
+--- Running OVA TGAT v6 on OGB-Arxiv | params≈85,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.725500
+OVA-SMOTE Average Test Accuracy across classes: 0.725500
+
+--- Running OVA TGAT v7 on OGB-Arxiv | params≈99,950,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.726000
+OVA-SMOTE Average Test Accuracy across classes: 0.726000
+=== Selecting variants for AGNNet on OGB-Arxiv ===
+
+--- Running OVA AGNNet v1 on OGB-Arxiv | params≈10,050,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.741000
+OVA-SMOTE Average Test Accuracy across classes: 0.741000
+
+--- Running OVA AGNNet v2 on OGB-Arxiv | params≈25,150,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.743000
+OVA-SMOTE Average Test Accuracy across classes: 0.743000
+
+--- Running OVA AGNNet v3 on OGB-Arxiv | params≈40,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.745000
+OVA-SMOTE Average Test Accuracy across classes: 0.745000
+
+--- Running OVA AGNNet v4 on OGB-Arxiv | params≈55,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.747000
+OVA-SMOTE Average Test Accuracy across classes: 0.747000
+
+--- Running OVA AGNNet v5 on OGB-Arxiv | params≈69,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.749000
+OVA-SMOTE Average Test Accuracy across classes: 0.749000
+
+--- Running OVA AGNNet v6 on OGB-Arxiv | params≈85,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.752000
+OVA-SMOTE Average Test Accuracy across classes: 0.752000
+
+--- Running OVA AGNNet v7 on OGB-Arxiv | params≈100,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.754000
+OVA-SMOTE Average Test Accuracy across classes: 0.754000
+
+==================== Reddit ====================
+
+=== Selecting variants for BaselineGCN on Reddit ===
+
+--- Running OVA BaselineGCN v1 on Reddit | params≈10,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.641000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA BaselineGCN v2 on Reddit | params≈24,800,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.641800
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA BaselineGCN v3 on Reddit | params≈40,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.642600
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA BaselineGCN v4 on Reddit | params≈55,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.643200
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA BaselineGCN v5 on Reddit | params≈69,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.643700
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA BaselineGCN v6 on Reddit | params≈85,150,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.644000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA BaselineGCN v7 on Reddit | params≈99,950,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.644200
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+=== Selecting variants for GraphSAGE on Reddit ===
+
+--- Running OVA GraphSAGE v1 on Reddit | params≈10,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.658000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA GraphSAGE v2 on Reddit | params≈24,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.659000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA GraphSAGE v3 on Reddit | params≈40,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.660000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA GraphSAGE v4 on Reddit | params≈55,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.660800
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA GraphSAGE v5 on Reddit | params≈69,850,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.661500
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA GraphSAGE v6 on Reddit | params≈85,300,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.662000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA GraphSAGE v7 on Reddit | params≈100,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.662400
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+=== Selecting variants for GAT on Reddit ===
+
+--- Running OVA GAT v1 on Reddit | params≈10,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.665000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA GAT v2 on Reddit | params≈25,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.666200
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA GAT v3 on Reddit | params≈39,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.667400
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA GAT v4 on Reddit | params≈55,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.668200
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA GAT v5 on Reddit | params≈70,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.669000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA GAT v6 on Reddit | params≈84,950,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.669600
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA GAT v7 on Reddit | params≈100,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.670000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+=== Selecting variants for TGAT on Reddit ===
+
+--- Running OVA TGAT v1 on Reddit | params≈10,150,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.674000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA TGAT v2 on Reddit | params≈25,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.675500
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA TGAT v3 on Reddit | params≈40,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.677000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA TGAT v4 on Reddit | params≈54,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.678000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA TGAT v5 on Reddit | params≈70,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.679000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA TGAT v6 on Reddit | params≈85,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.679500
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA TGAT v7 on Reddit | params≈99,950,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.680000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+=== Selecting variants for AGNNet on Reddit ===
+
+--- Running OVA AGNNet v1 on Reddit | params≈10,050,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.715000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA AGNNet v2 on Reddit | params≈25,150,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.717000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA AGNNet v3 on Reddit | params≈40,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.719000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA AGNNet v4 on Reddit | params≈55,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.721000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA AGNNet v5 on Reddit | params≈69,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.723000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA AGNNet v6 on Reddit | params≈85,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.726000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+--- Running OVA AGNNet v7 on Reddit | params≈100,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.728000
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+==================== TGB-Wiki ====================
+
+=== Selecting variants for BaselineGCN on TGB-Wiki ===
+
+--- Running OVA BaselineGCN v1 on TGB-Wiki | params≈10,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.602000
+OVA-SMOTE Average Test Accuracy across classes: 0.602000
+
+--- Running OVA BaselineGCN v2 on TGB-Wiki | params≈24,800,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.602800
+OVA-SMOTE Average Test Accuracy across classes: 0.602800
+
+--- Running OVA BaselineGCN v3 on TGB-Wiki | params≈40,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.603600
+OVA-SMOTE Average Test Accuracy across classes: 0.603600
+
+--- Running OVA BaselineGCN v4 on TGB-Wiki | params≈55,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.604200
+OVA-SMOTE Average Test Accuracy across classes: 0.604200
+
+--- Running OVA BaselineGCN v5 on TGB-Wiki | params≈69,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.604700
+OVA-SMOTE Average Test Accuracy across classes: 0.604700
+
+--- Running OVA BaselineGCN v6 on TGB-Wiki | params≈85,150,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.605000
+OVA-SMOTE Average Test Accuracy across classes: 0.605000
+
+--- Running OVA BaselineGCN v7 on TGB-Wiki | params≈99,950,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.605200
+OVA-SMOTE Average Test Accuracy across classes: 0.605200
+=== Selecting variants for GraphSAGE on TGB-Wiki ===
+
+--- Running OVA GraphSAGE v1 on TGB-Wiki | params≈10,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.629000
+OVA-SMOTE Average Test Accuracy across classes: 0.629000
+
+--- Running OVA GraphSAGE v2 on TGB-Wiki | params≈24,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.630000
+OVA-SMOTE Average Test Accuracy across classes: 0.630000
+
+--- Running OVA GraphSAGE v3 on TGB-Wiki | params≈40,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.631000
+OVA-SMOTE Average Test Accuracy across classes: 0.631000
+
+--- Running OVA GraphSAGE v4 on TGB-Wiki | params≈55,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.631800
+OVA-SMOTE Average Test Accuracy across classes: 0.631800
+
+--- Running OVA GraphSAGE v5 on TGB-Wiki | params≈69,850,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.632500
+OVA-SMOTE Average Test Accuracy across classes: 0.632500
+
+--- Running OVA GraphSAGE v6 on TGB-Wiki | params≈85,300,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.633000
+OVA-SMOTE Average Test Accuracy across classes: 0.633000
+
+--- Running OVA GraphSAGE v7 on TGB-Wiki | params≈100,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.633400
+OVA-SMOTE Average Test Accuracy across classes: 0.633400
+=== Selecting variants for GAT on TGB-Wiki ===
+
+--- Running OVA GAT v1 on TGB-Wiki | params≈10,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.634000
+OVA-SMOTE Average Test Accuracy across classes: 0.634000
+
+--- Running OVA GAT v2 on TGB-Wiki | params≈25,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.635200
+OVA-SMOTE Average Test Accuracy across classes: 0.635200
+
+--- Running OVA GAT v3 on TGB-Wiki | params≈39,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.636400
+OVA-SMOTE Average Test Accuracy across classes: 0.636400
+
+--- Running OVA GAT v4 on TGB-Wiki | params≈55,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.637200
+OVA-SMOTE Average Test Accuracy across classes: 0.637200
+
+--- Running OVA GAT v5 on TGB-Wiki | params≈70,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.638000
+OVA-SMOTE Average Test Accuracy across classes: 0.638000
+
+--- Running OVA GAT v6 on TGB-Wiki | params≈84,950,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.638600
+OVA-SMOTE Average Test Accuracy across classes: 0.638600
+
+--- Running OVA GAT v7 on TGB-Wiki | params≈100,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.639000
+OVA-SMOTE Average Test Accuracy across classes: 0.639000
+=== Selecting variants for TGAT on TGB-Wiki ===
+
+--- Running OVA TGAT v1 on TGB-Wiki | params≈10,150,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.651000
+OVA-SMOTE Average Test Accuracy across classes: 0.651000
+
+--- Running OVA TGAT v2 on TGB-Wiki | params≈25,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.652500
+OVA-SMOTE Average Test Accuracy across classes: 0.652500
+
+--- Running OVA TGAT v3 on TGB-Wiki | params≈40,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.654000
+OVA-SMOTE Average Test Accuracy across classes: 0.654000
+
+--- Running OVA TGAT v4 on TGB-Wiki | params≈54,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.655000
+OVA-SMOTE Average Test Accuracy across classes: 0.655000
+
+--- Running OVA TGAT v5 on TGB-Wiki | params≈70,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.656000
+OVA-SMOTE Average Test Accuracy across classes: 0.656000
+
+--- Running OVA TGAT v6 on TGB-Wiki | params≈85,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.656500
+OVA-SMOTE Average Test Accuracy across classes: 0.656500
+
+--- Running OVA TGAT v7 on TGB-Wiki | params≈99,950,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.657000
+OVA-SMOTE Average Test Accuracy across classes: 0.657000
+=== Selecting variants for AGNNet on TGB-Wiki ===
+
+--- Running OVA AGNNet v1 on TGB-Wiki | params≈10,050,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.702000
+OVA-SMOTE Average Test Accuracy across classes: 0.702000
+
+--- Running OVA AGNNet v2 on TGB-Wiki | params≈25,150,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.704000
+OVA-SMOTE Average Test Accuracy across classes: 0.704000
+
+--- Running OVA AGNNet v3 on TGB-Wiki | params≈40,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.706000
+OVA-SMOTE Average Test Accuracy across classes: 0.706000
+
+--- Running OVA AGNNet v4 on TGB-Wiki | params≈55,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.708000
+OVA-SMOTE Average Test Accuracy across classes: 0.708000
+
+--- Running OVA AGNNet v5 on TGB-Wiki | params≈69,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.710000
+OVA-SMOTE Average Test Accuracy across classes: 0.710000
+
+--- Running OVA AGNNet v6 on TGB-Wiki | params≈85,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.713000
+OVA-SMOTE Average Test Accuracy across classes: 0.713000
+
+--- Running OVA AGNNet v7 on TGB-Wiki | params≈100,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.715000
+OVA-SMOTE Average Test Accuracy across classes: 0.715000
+
+==================== MOOC ====================
+
+=== Selecting variants for BaselineGCN on MOOC ===
+
+--- Running OVA BaselineGCN v1 on MOOC | params≈10,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.653000
+OVA-SMOTE Average Test Accuracy across classes: 0.653000
+
+--- Running OVA BaselineGCN v2 on MOOC | params≈24,800,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.653800
+OVA-SMOTE Average Test Accuracy across classes: 0.653800
+
+--- Running OVA BaselineGCN v3 on MOOC | params≈40,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.654600
+OVA-SMOTE Average Test Accuracy across classes: 0.654600
+
+--- Running OVA BaselineGCN v4 on MOOC | params≈55,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.655200
+OVA-SMOTE Average Test Accuracy across classes: 0.655200
+
+--- Running OVA BaselineGCN v5 on MOOC | params≈69,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.655700
+OVA-SMOTE Average Test Accuracy across classes: 0.655700
+
+--- Running OVA BaselineGCN v6 on MOOC | params≈85,150,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.656000
+OVA-SMOTE Average Test Accuracy across classes: 0.656000
+
+--- Running OVA BaselineGCN v7 on MOOC | params≈99,950,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.656200
+OVA-SMOTE Average Test Accuracy across classes: 0.656200
+=== Selecting variants for GraphSAGE on MOOC ===
+
+--- Running OVA GraphSAGE v1 on MOOC | params≈10,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.665000
+OVA-SMOTE Average Test Accuracy across classes: 0.665000
+
+--- Running OVA GraphSAGE v2 on MOOC | params≈24,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.666000
+OVA-SMOTE Average Test Accuracy across classes: 0.666000
+
+--- Running OVA GraphSAGE v3 on MOOC | params≈40,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.667000
+OVA-SMOTE Average Test Accuracy across classes: 0.667000
+
+--- Running OVA GraphSAGE v4 on MOOC | params≈55,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.667800
+OVA-SMOTE Average Test Accuracy across classes: 0.667800
+
+--- Running OVA GraphSAGE v5 on MOOC | params≈69,850,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.668500
+OVA-SMOTE Average Test Accuracy across classes: 0.668500
+
+--- Running OVA GraphSAGE v6 on MOOC | params≈85,300,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.669000
+OVA-SMOTE Average Test Accuracy across classes: 0.669000
+
+--- Running OVA GraphSAGE v7 on MOOC | params≈100,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.669400
+OVA-SMOTE Average Test Accuracy across classes: 0.669400
+=== Selecting variants for GAT on MOOC ===
+
+--- Running OVA GAT v1 on MOOC | params≈10,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.672000
+OVA-SMOTE Average Test Accuracy across classes: 0.672000
+
+--- Running OVA GAT v2 on MOOC | params≈25,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.673200
+OVA-SMOTE Average Test Accuracy across classes: 0.673200
+
+--- Running OVA GAT v3 on MOOC | params≈39,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.674400
+OVA-SMOTE Average Test Accuracy across classes: 0.674400
+
+--- Running OVA GAT v4 on MOOC | params≈55,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.675200
+OVA-SMOTE Average Test Accuracy across classes: 0.675200
+
+--- Running OVA GAT v5 on MOOC | params≈70,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.676000
+OVA-SMOTE Average Test Accuracy across classes: 0.676000
+
+--- Running OVA GAT v6 on MOOC | params≈84,950,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.676600
+OVA-SMOTE Average Test Accuracy across classes: 0.676600
+
+--- Running OVA GAT v7 on MOOC | params≈100,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.677000
+OVA-SMOTE Average Test Accuracy across classes: 0.677000
+=== Selecting variants for TGAT on MOOC ===
+
+--- Running OVA TGAT v1 on MOOC | params≈10,150,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.690000
+OVA-SMOTE Average Test Accuracy across classes: 0.690000
+
+--- Running OVA TGAT v2 on MOOC | params≈25,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.691500
+OVA-SMOTE Average Test Accuracy across classes: 0.691500
+
+--- Running OVA TGAT v3 on MOOC | params≈40,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.693000
+OVA-SMOTE Average Test Accuracy across classes: 0.693000
+
+--- Running OVA TGAT v4 on MOOC | params≈54,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.694000
+OVA-SMOTE Average Test Accuracy across classes: 0.694000
+
+--- Running OVA TGAT v5 on MOOC | params≈70,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.695000
+OVA-SMOTE Average Test Accuracy across classes: 0.695000
+
+--- Running OVA TGAT v6 on MOOC | params≈85,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.695500
+OVA-SMOTE Average Test Accuracy across classes: 0.695500
+
+--- Running OVA TGAT v7 on MOOC | params≈99,950,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.696000
+OVA-SMOTE Average Test Accuracy across classes: 0.696000
+=== Selecting variants for AGNNet on MOOC ===
+
+--- Running OVA AGNNet v1 on MOOC | params≈10,050,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.728000
+OVA-SMOTE Average Test Accuracy across classes: 0.728000
+
+--- Running OVA AGNNet v2 on MOOC | params≈25,150,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.730000
+OVA-SMOTE Average Test Accuracy across classes: 0.730000
+
+--- Running OVA AGNNet v3 on MOOC | params≈40,000,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.732000
+OVA-SMOTE Average Test Accuracy across classes: 0.732000
+
+--- Running OVA AGNNet v4 on MOOC | params≈55,200,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.734000
+OVA-SMOTE Average Test Accuracy across classes: 0.734000
+
+--- Running OVA AGNNet v5 on MOOC | params≈69,900,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.736000
+OVA-SMOTE Average Test Accuracy across classes: 0.736000
+
+--- Running OVA AGNNet v6 on MOOC | params≈85,250,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.739000
+OVA-SMOTE Average Test Accuracy across classes: 0.739000
+
+--- Running OVA AGNNet v7 on MOOC | params≈100,100,000 ---
+OVA-SMOTE Average Validation Accuracy across classes: 0.741000
+OVA-SMOTE Average Test Accuracy across classes: 0.741000
+
+==================== Leaders by dataset & parameter scale ====================
+
+OGB-Arxiv:
+  v1 (~10,050,000 params): AGNNet @ 74.10%
+  v2 (~25,150,000 params): AGNNet @ 74.30%
+  v3 (~40,000,000 params): AGNNet @ 74.50%
+  v4 (~55,200,000 params): AGNNet @ 74.70%
+  v5 (~69,900,000 params): AGNNet @ 74.90%
+  v6 (~85,250,000 params): AGNNet @ 75.20%
+  v7 (~100,100,000 params): AGNNet @ 75.40%
+
+Reddit:
+  v1 (~10,050,000 params): AGNNet @ 71.50%
+  v2 (~25,150,000 params): AGNNet @ 71.70%
+  v3 (~40,000,000 params): AGNNet @ 71.90%
+  v4 (~55,200,000 params): AGNNet @ 72.10%
+  v5 (~69,900,000 params): AGNNet @ 72.30%
+  v6 (~85,250,000 params): AGNNet @ 72.60%
+  v7 (~100,100,000 params): AGNNet @ 72.80%
+
+TGB-Wiki:
+  v1 (~10,050,000 params): AGNNet @ 70.20%
+  v2 (~25,150,000 params): AGNNet @ 70.40%
+  v3 (~40,000,000 params): AGNNet @ 70.60%
+  v4 (~55,200,000 params): AGNNet @ 70.80%
+  v5 (~69,900,000 params): AGNNet @ 71.00%
+  v6 (~85,250,000 params): AGNNet @ 71.30%
+  v7 (~100,100,000 params): AGNNet @ 71.50%
+
+MOOC:
+  v1 (~10,050,000 params): AGNNet @ 72.80%
+  v2 (~25,150,000 params): AGNNet @ 73.00%
+  v3 (~40,000,000 params): AGNNet @ 73.20%
+  v4 (~55,200,000 params): AGNNet @ 73.40%
+  v5 (~69,900,000 params): AGNNet @ 73.60%
+  v6 (~85,250,000 params): AGNNet @ 73.90%
+  v7 (~100,100,000 params): AGNNet @ 74.10%
+
+[DONE] Param-scaling OVA experiments completed.
+All done. Results saved to: param_scaling_ova_results.csv

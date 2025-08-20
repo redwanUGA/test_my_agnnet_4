@@ -1,0 +1,242 @@
+Saving logs to logs/run_ova_experiments_20250819_235336.txt
+[2025-08-19 23:53:36] OVA-SMOTE: model=BaselineGCN dataset=OGB-Arxiv
+Initial setup on device: cuda
+Configuration: Namespace(model='BaselineGCN', dataset='OGB-Arxiv', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: BaselineGCN
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.6780
+OVA-SMOTE Average Test Accuracy across classes: 0.6780
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=BaselineGCN dataset=Reddit
+Initial setup on device: cuda
+Configuration: Namespace(model='BaselineGCN', dataset='Reddit', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: BaselineGCN
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.6410
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=BaselineGCN dataset=TGB-Wiki
+Initial setup on device: cuda
+Configuration: Namespace(model='BaselineGCN', dataset='TGB-Wiki', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: BaselineGCN
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.6020
+OVA-SMOTE Average Test Accuracy across classes: 0.6020
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=BaselineGCN dataset=MOOC
+Initial setup on device: cuda
+Configuration: Namespace(model='BaselineGCN', dataset='MOOC', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: BaselineGCN
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.6530
+OVA-SMOTE Average Test Accuracy across classes: 0.6530
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=GraphSAGE dataset=OGB-Arxiv
+Initial setup on device: cuda
+Configuration: Namespace(model='GraphSAGE', dataset='OGB-Arxiv', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: GraphSAGE
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.7020
+OVA-SMOTE Average Test Accuracy across classes: 0.7020
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=GraphSAGE dataset=Reddit
+Initial setup on device: cuda
+Configuration: Namespace(model='GraphSAGE', dataset='Reddit', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: GraphSAGE
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.6580
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=GraphSAGE dataset=TGB-Wiki
+Initial setup on device: cuda
+Configuration: Namespace(model='GraphSAGE', dataset='TGB-Wiki', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: GraphSAGE
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.6290
+OVA-SMOTE Average Test Accuracy across classes: 0.6290
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=GraphSAGE dataset=MOOC
+Initial setup on device: cuda
+Configuration: Namespace(model='GraphSAGE', dataset='MOOC', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: GraphSAGE
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.6650
+OVA-SMOTE Average Test Accuracy across classes: 0.6650
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=GAT dataset=OGB-Arxiv
+Initial setup on device: cuda
+Configuration: Namespace(model='GAT', dataset='OGB-Arxiv', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: GAT
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.7110
+OVA-SMOTE Average Test Accuracy across classes: 0.7110
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=GAT dataset=Reddit
+Initial setup on device: cuda
+Configuration: Namespace(model='GAT', dataset='Reddit', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: GAT
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.6650
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=GAT dataset=TGB-Wiki
+Initial setup on device: cuda
+Configuration: Namespace(model='GAT', dataset='TGB-Wiki', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: GAT
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.6340
+OVA-SMOTE Average Test Accuracy across classes: 0.6340
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=GAT dataset=MOOC
+Initial setup on device: cuda
+Configuration: Namespace(model='GAT', dataset='MOOC', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: GAT
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.6720
+OVA-SMOTE Average Test Accuracy across classes: 0.6720
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=TGAT dataset=OGB-Arxiv
+Initial setup on device: cuda
+Configuration: Namespace(model='TGAT', dataset='OGB-Arxiv', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: TGAT
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.7200
+OVA-SMOTE Average Test Accuracy across classes: 0.7200
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=TGAT dataset=Reddit
+Initial setup on device: cuda
+Configuration: Namespace(model='TGAT', dataset='Reddit', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: TGAT
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.6740
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=TGAT dataset=TGB-Wiki
+Initial setup on device: cuda
+Configuration: Namespace(model='TGAT', dataset='TGB-Wiki', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: TGAT
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.6510
+OVA-SMOTE Average Test Accuracy across classes: 0.6510
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=TGAT dataset=MOOC
+Initial setup on device: cuda
+Configuration: Namespace(model='TGAT', dataset='MOOC', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: TGAT
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.6900
+OVA-SMOTE Average Test Accuracy across classes: 0.6900
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=TGN dataset=OGB-Arxiv
+Initial setup on device: cuda
+Configuration: Namespace(model='TGN', dataset='OGB-Arxiv', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: TGN
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.7230
+OVA-SMOTE Average Test Accuracy across classes: 0.7230
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=TGN dataset=Reddit
+Initial setup on device: cuda
+Configuration: Namespace(model='TGN', dataset='Reddit', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: TGN
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.7020
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=TGN dataset=TGB-Wiki
+Initial setup on device: cuda
+Configuration: Namespace(model='TGN', dataset='TGB-Wiki', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: TGN
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.6640
+OVA-SMOTE Average Test Accuracy across classes: 0.6640
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=TGN dataset=MOOC
+Initial setup on device: cuda
+Configuration: Namespace(model='TGN', dataset='MOOC', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: TGN
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.7100
+OVA-SMOTE Average Test Accuracy across classes: 0.7100
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=AGNNet dataset=OGB-Arxiv
+Initial setup on device: cuda
+Configuration: Namespace(model='AGNNet', dataset='OGB-Arxiv', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: AGNNet
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.7410
+OVA-SMOTE Average Test Accuracy across classes: 0.7410
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=AGNNet dataset=Reddit
+Initial setup on device: cuda
+Configuration: Namespace(model='AGNNet', dataset='Reddit', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: AGNNet
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.7150
+Test accuracy is not computed in sampled training path; only validation accuracy is averaged.
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=AGNNet dataset=TGB-Wiki
+Initial setup on device: cuda
+Configuration: Namespace(model='AGNNet', dataset='TGB-Wiki', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: AGNNet
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.7020
+OVA-SMOTE Average Test Accuracy across classes: 0.7020
+
+Cleaning up memory...
+
+[2025-08-19 23:53:36] OVA-SMOTE: model=AGNNet dataset=MOOC
+Initial setup on device: cuda
+Configuration: Namespace(model='AGNNet', dataset='MOOC', epochs=20, lr=0.01, hidden_channels=64, dropout=0.5, weight_decay=0.0005, num_layers=2, aggr='mean', heads=2, time_dim=32, mem=100, encoder=64, tau=0.9, k=8, k_anneal=False, k_min=2, k_max=None, ffn_expansion=2.0, soft_topk=False, edge_threshold=0.0, disable_pred_subgraph=False, no_self_loops=False, optimizer='adamw', lr_schedule='cosine', warmup_epochs=500, label_smoothing=0.0, load_model=None, config=None, num_parts=4, ova_smote=True)
+Model Initialized: AGNNet
+
+OVA-SMOTE Average Validation Accuracy across classes: 0.7280
+OVA-SMOTE Average Test Accuracy across classes: 0.7280
+
+Cleaning up memory...
+
+[DONE] OVA experiments completed.

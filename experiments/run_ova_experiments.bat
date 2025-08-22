@@ -34,7 +34,7 @@ REM -----------------------
 for %%M in (%MODELS%) do (
   for %%D in (%DATASETS%) do (
     echo [!DATE! !TIME!] OVA-SMOTE: model=%%M dataset=%%D
-    python main.py --model %%M --dataset %%D --epochs %EPOCHS% --ova-smote
+    python ..\backend\main.py --model %%M --dataset %%D --epochs %EPOCHS% --ova-smote
   )
 )
 

@@ -228,9 +228,10 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
             test_accs = []
             last_state = None
             for i, part in enumerate(parts, start=1):
-                # Create a fresh model sized to the partition
+                # Create a fresh model but size TGN memory to the GLOBAL graph
+                # TGN uses global node IDs via part.n_id; memory must match the global num_nodes
                 part_args = argparse.Namespace(**vars(args))
-                setattr(part_args, "num_nodes", part.num_nodes)
+                setattr(part_args, "num_nodes", data.num_nodes)
                 model = create_model(model_name, feat_dim, num_classes, part_args).to(device)
 
                 is_sampled = False  # partitions run full-batch on their subgraph

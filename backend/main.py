@@ -427,8 +427,9 @@ def main():
                     time_dim=args.time_dim,
                 )
             elif model_name == "tgn":
+                # Use GLOBAL num_nodes for TGN memory since part_data.n_id holds global IDs
                 part_model = models.TGN(
-                    part_data.num_nodes,
+                    data.num_nodes,
                     args.mem,
                     1,
                     num_classes,

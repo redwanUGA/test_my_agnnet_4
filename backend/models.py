@@ -129,6 +129,17 @@ class TGN(nn.Module):
             # Use the current data.num_nodes to restrict computation to this (sub)graph
             node_ids_for_conv = torch.arange(data.num_nodes, device=src.device)
 
+        # Safety: ensure indices are within memory range before any CUDA gather ops
+        mem_N = int(self.memory.memory.size(0))
+        if src_global.numel() > 0:
+            max_idx = int(torch.max(src_global.max(), dst_global.max()).item())
+            min_idx = int(torch.min(src_global.min(), dst_global.min()).item())
+            if max_idx >= mem_N or min_idx < 0:
+                raise RuntimeError(
+                    f"TGN memory index out of range: min={min_idx}, max={max_idx}, mem_N={mem_N}. "
+                    f"Hint: Initialize TGN with GLOBAL num_nodes when using partitions (Data.n_id)."
+                )
+
         # Edge features and timestamps (optional in batches)
         timestamps = getattr(data, 'edge_time', torch.zeros(src.size(0), device=src.device))
         edge_attr = getattr(data, 'edge_attr', None)

@@ -372,6 +372,201 @@ def main():
     if not is_sampled:
         train_loader = val_loader = test_loader = data
 
+    # If Reddit dataset, always partition into 32 tasks and average metrics
+    if args.dataset == "Reddit":
+        parts = data_loader.partition_graph(data, 32)
+        print(f"Partitioned Reddit dataset into {len(parts)} parts (requested: 32). Training each partition and averaging metrics...")
+
+        part_val_accs = []
+        part_test_accs = []
+
+        def build_and_train_on_part(part_data, part_idx):
+            # Recreate model for this partition (notably for TGN: num_nodes changes)
+            model_name = args.model.lower()
+            if model_name == "baselinegcn":
+                part_model = models.BaselineGCN(feat_dim, args.hidden_channels, num_classes, args.dropout)
+            elif model_name == "graphsage":
+                part_model = models.GraphSAGE(
+                    feat_dim,
+                    args.hidden_channels,
+                    num_classes,
+                    num_layers=args.num_layers,
+                    dropout=args.dropout,
+                    aggr=args.aggr,
+                )
+            elif model_name == "gat":
+                part_model = models.GAT(
+                    feat_dim,
+                    args.hidden_channels,
+                    num_classes,
+                    heads=args.heads,
+                    dropout=args.dropout,
+                )
+            elif model_name == "tgat":
+                part_model = models.TGAT(
+                    feat_dim,
+                    args.hidden_channels,
+                    num_classes,
+                    num_layers=args.num_layers,
+                    dropout=args.dropout,
+                    heads=args.heads,
+                    time_dim=args.time_dim,
+                )
+            elif model_name == "tgn":
+                # Use GLOBAL num_nodes for TGN memory since part_data.n_id holds global IDs
+                part_model = models.TGN(
+                    data.num_nodes,
+                    args.mem,
+                    1,
+                    num_classes,
+                    heads=args.heads,
+                )
+            elif model_name == "agnnet":
+                part_model = models.AGNNet(
+                    feat_dim,
+                    args.hidden_channels,
+                    num_classes,
+                    tau=args.tau,
+                    k=args.k,
+                    dropout=args.dropout,
+                )
+            else:
+                raise ValueError(f"Model '{args.model}' not implemented")
+
+            # Load checkpoint if provided (skip mismatched memory tensors as above)
+            if args.load_model and os.path.exists(args.load_model):
+                state_dict = torch.load(args.load_model, map_location=device, weights_only=True)
+                model_state = part_model.state_dict()
+                filtered = {}
+                for k, v in state_dict.items():
+                    if k in model_state and v.shape == model_state[k].shape:
+                        filtered[k] = v
+                part_model.load_state_dict(filtered, strict=False)
+
+            part_model = part_model.to(device)
+
+            # Build loaders for this partition using the same logic (sampled path for Reddit)
+            part_is_sampled = True
+            neighbor_sizes = [15] * args.num_layers
+            batch_size = 512
+            args.accum_steps = 2
+            # Build NeighborLoaders with GPU-aware settings
+            num_workers = 0 if os.name == 'nt' else 4
+            pin_memory = torch.cuda.is_available()
+            def build_part_neighbor_loaders(ns, bs):
+                tl = NeighborLoader(
+                    part_data,
+                    num_neighbors=ns,
+                    batch_size=bs,
+                    input_nodes=part_data.train_mask,
+                    shuffle=True,
+                    num_workers=num_workers,
+                    pin_memory=pin_memory,
+                    persistent_workers=(num_workers > 0),
+                )
+                vl = NeighborLoader(
+                    part_data,
+                    num_neighbors=ns,
+                    batch_size=bs,
+                    input_nodes=part_data.val_mask,
+                    num_workers=num_workers,
+                    pin_memory=pin_memory,
+                    persistent_workers=(num_workers > 0),
+                )
+                te = NeighborLoader(
+                    part_data,
+                    num_neighbors=ns,
+                    batch_size=bs,
+                    input_nodes=part_data.test_mask,
+                    num_workers=num_workers,
+                    pin_memory=pin_memory,
+                    persistent_workers=(num_workers > 0),
+                )
+                return tl, vl, te
+            # Determine initial sizes based on free GPU memory
+            free_gb = None
+            if torch.cuda.is_available():
+                try:
+                    free_bytes = torch.cuda.mem_get_info()[0]
+                    free_gb = free_bytes / (1024**3)
+                except Exception:
+                    free_gb = None
+            if free_gb is not None and free_gb < 2.0:
+                neighbor_sizes = [5] * args.num_layers
+                batch_size = 128
+            elif free_gb is not None and free_gb < 4.0:
+                neighbor_sizes = [10] * args.num_layers
+                batch_size = 256
+            else:
+                neighbor_sizes = [15] * args.num_layers
+                batch_size = 512
+            attempts = [
+                (neighbor_sizes, batch_size),
+                ([10] * args.num_layers, 256),
+                ([5] * args.num_layers, 128),
+                ([3] * args.num_layers, 64),
+                ([2] * args.num_layers, 32),
+            ]
+            last_err = None
+            for ns, bs in attempts:
+                try:
+                    part_train_loader, part_val_loader, part_test_loader = build_part_neighbor_loaders(ns, bs)
+                    last_err = None
+                    break
+                except torch.cuda.OutOfMemoryError as e:
+                    last_err = e
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                    continue
+            if last_err is not None:
+                raise last_err
+
+            print(f"\n--- Training on partition {part_idx+1}/{len(parts)} (task_id={getattr(part_data, 'task_id', part_idx)}, nodes={part_data.num_nodes}, edges={part_data.edge_index.size(1)}) ---")
+            try:
+                best_val, best_test, _ = train.run_training_session(
+                    part_model,
+                    part_data,
+                    part_train_loader,
+                    part_val_loader,
+                    part_test_loader,
+                    part_is_sampled,
+                    device,
+                    args,
+                )
+            except torch.cuda.OutOfMemoryError:
+                print(f"OOM on partition {part_idx+1}.")
+                return None, None
+            finally:
+                # Cleanup per-partition
+                del part_model, part_train_loader, part_val_loader, part_test_loader
+                gc.collect()
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+
+            return best_val, best_test
+
+        for i, part in enumerate(parts):
+            part = part.to(device)
+            val_acc, test_acc = build_and_train_on_part(part, i)
+            if val_acc is not None:
+                part_val_accs.append(val_acc)
+                # Test acc is not computed in sampled Reddit path
+
+        if part_val_accs:
+            avg_val = sum(part_val_accs) / len(part_val_accs)
+            print(f"\nAveraged Val Acc across {len(part_val_accs)} Reddit partitions: {avg_val:.4f}")
+        else:
+            print("No partition produced a validation accuracy.")
+        print("Test accuracy is not computed in sampled training path; only validation accuracy is averaged.")
+
+        # --- Cleanup ---
+        print("Cleaning up memory...")
+        del model, data, train_loader, val_loader, test_loader
+        gc.collect()
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        return
+
     # --- Training ---
     try:
         train.run_training_session(

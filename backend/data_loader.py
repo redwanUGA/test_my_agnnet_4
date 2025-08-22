@@ -270,6 +270,10 @@ def partition_graph(data: Data, num_parts: int) -> List[Data]:
         if hasattr(data, 'edge_time'):
             part_data.edge_time = getattr(data, 'edge_time')[e_mask]
 
+        # Attach partition task information
+        part_data.task_id = p  # zero-based partition index
+        part_data.num_parts = num_parts
+
         parts.append(part_data)
 
     return parts

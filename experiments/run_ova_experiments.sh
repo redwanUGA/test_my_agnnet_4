@@ -5,9 +5,15 @@
 set -euo pipefail
 
 # -----------------------
+# Path anchoring (resolve to project root)
+# -----------------------
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+PROJECT_ROOT="$(cd -- "$SCRIPT_DIR/.." >/dev/null 2>&1 && pwd)"
+
+# -----------------------
 # Logging (portable; no process substitution assumptions beyond mkfifo)
 # -----------------------
-LOG_DIR="logs"
+LOG_DIR="$PROJECT_ROOT/results/logs"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/run_ova_experiments_$(date +'%Y%m%d_%H%M%S').txt"
 LOG_PIPE="$LOG_DIR/.log_pipe_ova_$$"
@@ -29,9 +35,9 @@ trap cleanup EXIT
 # -----------------------
 # 1) Download datasets if missing
 # -----------------------
-if [ ! -d "simple_data" ]; then
-  echo "[INFO] Downloading datasets to simple_data/ …"
-  gdown 'https://drive.google.com/drive/folders/1iZE_Cg5wAk_94Uk1DgNrOLiqp4F6cbfZ?usp=sharing' --folder
+if [ ! -d "$PROJECT_ROOT/simple_data" ]; then
+  echo "[INFO] Downloading datasets to $PROJECT_ROOT/simple_data/ …"
+  (cd "$PROJECT_ROOT" && gdown 'https://drive.google.com/drive/folders/1iZE_Cg5wAk_94Uk1DgNrOLiqp4F6cbfZ?usp=sharing' --folder)
 fi
 
 # -----------------------

@@ -85,18 +85,30 @@ def _load_pt_dataset(pt_path):
 
 
 def load_dataset(name: str, root: str = _DEF_ROOT):
-    """Load one of the preprocessed datasets from disk."""
+    """Load one of the preprocessed datasets from disk.
+
+    The `root` parameter is interpreted relative to the repository root unless it is an
+    absolute path. This makes calls like `root="simple_data"` work regardless of the
+    current working directory (e.g., when running scripts from experiments/).
+    """
     if name not in _DATASET_FILES:
         raise ValueError(f"Unknown dataset: {name}")
 
-    if not os.path.exists(root):
+    # Resolve dataset root: if `root` is relative, anchor it at repo root (one level up from this file)
+    from pathlib import Path
+    root_path = Path(root)
+    if not root_path.is_absolute():
+        repo_root = Path(__file__).resolve().parents[1]
+        root_path = repo_root / root_path
+
+    if not root_path.exists():
         raise FileNotFoundError(
-            f"Dataset folder '{root}' does not exist. Follow DOWNLOAD_INSTRUCTIONS.md"
+            f"Dataset folder '{root_path}' does not exist. Follow DOWNLOAD_INSTRUCTIONS.md"
         )
 
     print(f"\n--- Loading {name} ---")
-    pt_path = os.path.join(root, _DATASET_FILES[name])
-    data, feat_dim, num_classes = _load_pt_dataset(pt_path)
+    pt_path = root_path / _DATASET_FILES[name]
+    data, feat_dim, num_classes = _load_pt_dataset(str(pt_path))
 
     print(f"✅ Dataset '{name}' loaded successfully.")
     print(f"   Nodes: {data.num_nodes}, Edges: {data.num_edges}")

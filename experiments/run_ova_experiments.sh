@@ -54,7 +54,7 @@ datasets=("OGB-Arxiv" "Reddit" "TGB-Wiki" "MOOC")
 for model in "${models[@]}"; do
   for dataset in "${datasets[@]}"; do
     echo "[$(date +'%F %T')] OVA-SMOTE: model=$model dataset=$dataset"
-    python3 main.py \
+    python3 "$PROJECT_ROOT/backend/main.py" \
       --model "$model" \
       --dataset "$dataset" \
       --epochs "$EPOCHS" \

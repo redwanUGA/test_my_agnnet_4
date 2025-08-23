@@ -180,6 +180,35 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
     space = get_search_space()[model_name][dataset]
     keys = list(space.keys())
     combos = list(itertools.product(*[space[k] for k in keys]))
+
+    # AGNNet-specific speed caps: limit trials and optionally epochs
+    agn_fast = model_name.lower() == "agnnet"
+    if agn_fast:
+        try:
+            agn_max_trials = int(os.environ.get("AGN_MAX_TRIALS", "3"))
+        except Exception:
+            agn_max_trials = 3
+        if len(combos) > agn_max_trials:
+            combos = combos[:agn_max_trials]
+        try:
+            agn_hpo_epochs = int(os.environ.get("AGN_HPO_EPOCHS", "5"))
+        except Exception:
+            agn_hpo_epochs = 5
+        agn_hpo_epochs = max(1, min(agn_hpo_epochs, epochs))
+        # Limits for Reddit partitions and NeighborLoader attempts
+        try:
+            agn_partitions = int(os.environ.get("AGN_PARTITIONS", "4"))
+        except Exception:
+            agn_partitions = 4
+        try:
+            agn_neighbor_attempts = int(os.environ.get("AGN_NEIGHBOR_ATTEMPTS", "2"))
+        except Exception:
+            agn_neighbor_attempts = 2
+    else:
+        agn_hpo_epochs = epochs
+        agn_partitions = None
+        agn_neighbor_attempts = None
+
     best_acc = -1
     best_params = None
     best_state = None
@@ -192,7 +221,7 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
         # default values
         args.model = model_name
         args.dataset = dataset
-        args.epochs = epochs
+        args.epochs = agn_hpo_epochs
         args.weight_decay = 5e-4
         args.num_layers = 2
         defaults = {
@@ -211,11 +240,142 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
                 setattr(args, field, val)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         data, feat_dim, num_classes = data_loader.load_dataset(name=dataset, root="simple_data")
-        data = data_loader.apply_smote(data)
+        # Align SMOTE usage with main path to avoid OOM on large graphs
+        if model_name.lower() != "tgn" and getattr(data, 'num_nodes', 0) <= 200_000:
+            data = data_loader.apply_smote(data)
+        else:
+            print("Skipping SMOTE for this configuration to avoid memory blow-up.")
         # Keep full graph on CPU for sampled training (e.g., Reddit) to avoid GPU OOM in NeighborLoader init
         is_sampled_dataset = dataset == "Reddit"
         if not is_sampled_dataset:
             data = data.to(device)
+
+        # Reddit: run hyperparameter search separately for each partition and report/save per-part best
+        if dataset == "Reddit":
+            from torch_geometric.loader import NeighborLoader
+            num_parts = int(os.environ.get("PARTITIONS", "32"))
+            if agn_fast:
+                try:
+                    num_parts = max(1, min(num_parts, agn_partitions))
+                except Exception:
+                    num_parts = max(1, num_parts)
+            parts = data_loader.partition_graph(data, num_parts)
+            last_model_path = None
+            last_param_path = None
+            part_best_vals = []
+            for p_idx, part in enumerate(parts, start=1):
+                print(f"\n=== Hyperparameter search on Reddit partition {p_idx}/{len(parts)}: nodes={part.num_nodes}, edges={part.edge_index.size(1)} ===")
+                best_acc_part = -1.0
+                best_params_part = None
+                best_state_part = None
+
+                # GPU-aware NeighborLoader settings
+                num_workers = 0 if os.name == 'nt' else 4
+                pin_memory = torch.cuda.is_available()
+
+                def build_neighbor_loaders_part(ns, bs):
+                    tl = NeighborLoader(part, num_neighbors=ns, batch_size=bs, input_nodes=part.train_mask, shuffle=True, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=(num_workers > 0))
+                    vl = NeighborLoader(part, num_neighbors=ns, batch_size=bs, input_nodes=part.val_mask, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=(num_workers > 0))
+                    te = NeighborLoader(part, num_neighbors=ns, batch_size=bs, input_nodes=part.test_mask, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=(num_workers > 0))
+                    return tl, vl, te
+
+                def neighbor_attempts():
+                    neighbor_sizes = [15] * args.num_layers
+                    batch_size = 512
+                    free_gb = None
+                    if torch.cuda.is_available():
+                        try:
+                            free_bytes = torch.cuda.mem_get_info()[0]
+                            free_gb = free_bytes / (1024**3)
+                        except Exception:
+                            free_gb = None
+                    if free_gb is not None and free_gb < 2.0:
+                        neighbor_sizes = [5] * args.num_layers
+                        batch_size = 128
+                    elif free_gb is not None and free_gb < 4.0:
+                        neighbor_sizes = [10] * args.num_layers
+                        batch_size = 256
+                    return [
+                        (neighbor_sizes, batch_size),
+                        ([10] * args.num_layers, 256),
+                        ([5] * args.num_layers, 128),
+                        ([3] * args.num_layers, 64),
+                        ([2] * args.num_layers, 32),
+                    ]
+
+                for combo in combos:
+                    params = dict(zip(keys, combo))
+                    part_args = argparse.Namespace(**params)
+                    # copy defaults and common fields
+                    part_args.model = model_name
+                    part_args.dataset = dataset
+                    part_args.epochs = agn_hpo_epochs
+                    part_args.weight_decay = 5e-4
+                    part_args.num_layers = getattr(args, 'num_layers', 2)
+                    for field, val in defaults.items():
+                        if not hasattr(part_args, field):
+                            setattr(part_args, field, val)
+                    # Provide global num_nodes for TGN
+                    setattr(part_args, "num_nodes", data.num_nodes)
+
+                    model = create_model(model_name, feat_dim, num_classes, part_args).to(device)
+
+                    # Build loaders with attempts
+                    attempts = neighbor_attempts()
+                    if agn_fast and agn_neighbor_attempts is not None:
+                        attempts = attempts[:max(1, int(agn_neighbor_attempts))]
+                    last_err = None
+                    for ns, bs in attempts:
+                        try:
+                            train_loader, val_loader, test_loader = build_neighbor_loaders_part(ns, bs)
+                            last_err = None
+                            break
+                        except torch.cuda.OutOfMemoryError as e:
+                            last_err = e
+                            if torch.cuda.is_available():
+                                torch.cuda.empty_cache()
+                            continue
+                    if last_err is not None:
+                        raise last_err
+
+                    val_acc, _, model = train.run_training_session(
+                        model,
+                        part,
+                        train_loader,
+                        val_loader,
+                        test_loader,
+                        True,
+                        device,
+                        part_args,
+                    )
+                    if val_acc > best_acc_part:
+                        best_acc_part = val_acc
+                        best_params_part = params
+                        try:
+                            best_state_part = model.state_dict()
+                        except Exception:
+                            best_state_part = None
+
+                    # cleanup per combo
+                    del model, train_loader, val_loader, test_loader
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+
+                # Save best per partition
+                model_path = Path(save_dir) / f"{model_name}_{dataset}_part{p_idx}.pt"
+                param_path = Path(save_dir) / f"{model_name}_{dataset}_part{p_idx}_params.json"
+                if best_state_part is not None:
+                    torch.save(best_state_part, model_path)
+                with open(param_path, "w") as f:
+                    json.dump(best_params_part, f)
+                print(f"[Partition {p_idx}] Best Val Acc: {best_acc_part:.4f}. Saved model to {model_path}, params to {param_path}")
+                part_best_vals.append(best_acc_part)
+                last_model_path, last_param_path = model_path, param_path
+
+            if part_best_vals:
+                avg_best = float(sum(part_best_vals) / len(part_best_vals))
+                print(f"\nAverage of best validation accuracies across {len(part_best_vals)} Reddit partitions: {avg_best:.4f}")
+            return last_model_path, last_param_path
 
         # Determine if we should partition to avoid OOM
         use_partitions = (model_name.lower() == "tgn" and dataset == "OGB-Arxiv")
@@ -351,6 +511,8 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
                     ([3] * args.num_layers, 64),
                     ([2] * args.num_layers, 32),
                 ]
+                if agn_fast and agn_neighbor_attempts is not None:
+                    attempts = attempts[:max(1, int(agn_neighbor_attempts))]
                 
                 last_err = None
                 for ns, bs in attempts:

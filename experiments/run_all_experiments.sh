@@ -61,8 +61,8 @@ datasets=("OGB-Arxiv" "Reddit" "TGB-Wiki" "MOOC")
 # -----------------------
 # 3) Run hyperparameter search (if needed) and training
 # -----------------------
-for model in "${models[@]}"; do
-  for dataset in "${datasets[@]}"; do
+for dataset in "${datasets[@]}"; do
+  for model in "${models[@]}"; do
     model_file="$SAVE_DIR/${model}_${dataset}.pt"
     config_file="$SAVE_DIR/${model}_${dataset}_params.json"
 

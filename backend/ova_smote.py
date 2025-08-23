@@ -24,6 +24,127 @@ def run_ova_smote_experiments(args, device):
     data, feat_dim, num_classes = data_loader.load_dataset(name=args.dataset, root="simple_data")
     is_sampled_dataset = args.dataset == "Reddit"
 
+    # Special handling: For Reddit, first partition the graph, then run OVA within each partition.
+    if args.dataset == "Reddit":
+        from torch_geometric.data import Data as _Data
+        parts = data_loader.partition_graph(data, getattr(args, 'num_parts', 32))
+        print(f"OVA-SMOTE (Reddit): Partitioned into {len(parts)} parts. Running OVA within each partition and averaging per-part accuracies...")
+        part_ova_vals = []
+        for p_idx, part in enumerate(parts, start=1):
+            print(f"\n=== Reddit OVA on partition {p_idx}/{len(parts)}: nodes={part.num_nodes}, edges={part.edge_index.size(1)} ===")
+            cls_val_accs = []
+            # For each class, build a binary task inside this partition
+            for cls in range(num_classes):
+                # Build per-partition binary data object
+                d = _Data(
+                    x=part.x.clone(),
+                    y=(part.y == cls).long(),
+                    edge_index=part.edge_index.clone(),
+                )
+                # Preserve optional attributes and mapping to global IDs
+                for opt in ["edge_attr", "train_mask", "val_mask", "test_mask", "edge_time"]:
+                    if hasattr(part, opt):
+                        val = getattr(part, opt)
+                        setattr(d, opt, val.clone() if isinstance(val, torch.Tensor) else val)
+                d.num_nodes = part.num_nodes
+                if hasattr(part, "n_id"):
+                    d.n_id = part.n_id  # keep mapping for models like TGN
+
+                # Apply SMOTE for the binary task when feasible
+                if args.model.lower() != "tgn" and getattr(d, 'num_nodes', 0) <= 200_000:
+                    d = data_loader.apply_smote(d)
+                else:
+                    print("Skipping SMOTE for this configuration to avoid memory blow-up.")
+
+                # Build a 2-class model
+                model_name = args.model.lower()
+                if model_name == "baselinegcn":
+                    model = models.BaselineGCN(feat_dim, args.hidden_channels, 2, args.dropout)
+                elif model_name == "graphsage":
+                    model = models.GraphSAGE(feat_dim, args.hidden_channels, 2, num_layers=args.num_layers, dropout=args.dropout, aggr=args.aggr)
+                elif model_name == "gat":
+                    model = models.GAT(feat_dim, args.hidden_channels, 2, heads=args.heads, dropout=args.dropout)
+                elif model_name == "tgat":
+                    model = models.TGAT(feat_dim, args.hidden_channels, 2, num_layers=args.num_layers, dropout=args.dropout, heads=args.heads, time_dim=args.time_dim)
+                elif model_name == "tgn":
+                    # Use GLOBAL num_nodes for TGN memory; d.n_id maps to global ids
+                    model = models.TGN(data.num_nodes, args.mem, 1, 2, heads=args.heads)
+                elif model_name == "agnnet":
+                    model = models.AGNNet(feat_dim, args.hidden_channels, 2, tau=args.tau, k=args.k, num_layers=args.num_layers, dropout=args.dropout, ffn_expansion=args.ffn_expansion, soft_topk=args.soft_topk, edge_threshold=args.edge_threshold, disable_pred_subgraph=args.disable_pred_subgraph, add_self_loops=(not args.no_self_loops))
+                else:
+                    raise ValueError(f"Model '{args.model}' not implemented")
+                model = model.to(device)
+
+                # NeighborLoaders over this partition
+                num_workers = 0 if os.name == 'nt' else 4
+                pin_memory = torch.cuda.is_available()
+
+                def _build_part_loaders(ns, bs):
+                    tl = NeighborLoader(d, num_neighbors=ns, batch_size=bs, input_nodes=d.train_mask, shuffle=True, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=(num_workers > 0))
+                    vl = NeighborLoader(d, num_neighbors=ns, batch_size=bs, input_nodes=d.val_mask, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=(num_workers > 0))
+                    te = NeighborLoader(d, num_neighbors=ns, batch_size=bs, input_nodes=d.test_mask, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=(num_workers > 0))
+                    return tl, vl, te
+
+                # GPU-aware settings
+                neighbor_sizes = [15] * args.num_layers
+                batch_size = 512
+                free_gb = None
+                if torch.cuda.is_available():
+                    try:
+                        free_bytes = torch.cuda.mem_get_info()[0]
+                        free_gb = free_bytes / (1024**3)
+                    except Exception:
+                        free_gb = None
+                if free_gb is not None and free_gb < 2.0:
+                    neighbor_sizes = [5] * args.num_layers
+                    batch_size = 128
+                elif free_gb is not None and free_gb < 4.0:
+                    neighbor_sizes = [10] * args.num_layers
+                    batch_size = 256
+
+                attempts = [
+                    (neighbor_sizes, batch_size),
+                    ([10] * args.num_layers, 256),
+                    ([5] * args.num_layers, 128),
+                    ([3] * args.num_layers, 64),
+                    ([2] * args.num_layers, 32),
+                ]
+                last_err = None
+                for ns, bs in attempts:
+                    try:
+                        train_loader, val_loader, test_loader = _build_part_loaders(ns, bs)
+                        last_err = None
+                        break
+                    except torch.cuda.OutOfMemoryError as e:
+                        last_err = e
+                        if torch.cuda.is_available():
+                            torch.cuda.empty_cache()
+                        continue
+                if last_err is not None:
+                    raise last_err
+
+                # Train on this class for this partition
+                try:
+                    best_val_acc, _, _ = train.run_training_session(
+                        model, d, train_loader, val_loader, test_loader, True, device, args
+                    )
+                finally:
+                    del model, train_loader, val_loader, test_loader
+                    gc.collect()
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
+                cls_val_accs.append(best_val_acc)
+
+            if cls_val_accs:
+                part_avg = sum(cls_val_accs) / len(cls_val_accs)
+                print(f"OVA-SMOTE Average Val Acc for partition {p_idx}: {part_avg:.4f}")
+                part_ova_vals.append(part_avg)
+
+        final_avg = float(sum(part_ova_vals) / len(part_ova_vals)) if part_ova_vals else None
+        if final_avg is not None:
+            print(f"\nFinal OVA-SMOTE accuracy (average of per-partition OVA accuracies over {len(part_ova_vals)} parts): {final_avg:.4f}")
+        return final_avg
+
     val_accs = []
     test_accs = []
 

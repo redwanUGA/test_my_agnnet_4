@@ -1,8 +1,15 @@
 import argparse
 import csv
 import os
+import sys
 from types import SimpleNamespace
 from typing import Dict, List, Tuple
+
+# Ensure project root is on sys.path so 'backend' can be imported when running this script directly
+_CURRENT_DIR = os.path.dirname(__file__)
+_PROJECT_ROOT = os.path.abspath(os.path.join(_CURRENT_DIR, os.pardir))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
 
 import torch
 

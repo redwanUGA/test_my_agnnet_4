@@ -277,7 +277,6 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
 
         # Reddit: run hyperparameter search separately for each partition and report/save per-part best
         if dataset == "Reddit":
-            from torch_geometric.loader import NeighborLoader
             # Use precomputed partitions for efficiency
             num_parts = precomputed_num_parts if precomputed_num_parts is not None else int(os.environ.get("PARTITIONS", "32"))
             parts = precomputed_parts if precomputed_parts is not None else data_loader.partition_graph(data, num_parts)

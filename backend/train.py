@@ -2,6 +2,7 @@ import os
 import torch
 import torch.nn.functional as F
 from tqdm import tqdm
+from torch.cuda.amp import autocast, GradScaler
 # Ensure TGN is imported from models for isinstance checks
 from models import AGNNet, TGN
 AGN_TYPES = (AGNNet,)
@@ -15,23 +16,33 @@ def train_epoch_full(model, data, optimizer, args):
     # Ensure data is on the same device as the model
     data = data.to(next(model.parameters()).device)
 
-    if isinstance(model, AGN_TYPES):
-        out = model(data.x, data.edge_index, edge_weight=None)
+    use_amp = bool(getattr(args, '_use_amp', False))
+    scaler = getattr(args, '_grad_scaler', None)
+
+    with autocast(enabled=use_amp):
+        if isinstance(model, AGN_TYPES):
+            out = model(data.x, data.edge_index, edge_weight=None)
+        else:
+            out = model(data)
+
+        labels = data.y[data.train_mask].view(-1)
+        logits = out[data.train_mask]
+
+        # 🔍 Check for invalid label indices
+        if labels.max() >= logits.size(1) or labels.min() < 0:
+            print(f"❌ Invalid label values detected. Label range: [{labels.min()} - {labels.max()}], Expected: [0 - {logits.size(1) - 1}]")
+            print(f"Logits shape: {logits.shape}")
+            raise ValueError("CrossEntropy target contains invalid class index.")
+
+        loss = F.cross_entropy(logits, labels, label_smoothing=getattr(args, 'label_smoothing', 0.0))
+
+    if scaler is not None and use_amp:
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
     else:
-        out = model(data)
-
-    labels = data.y[data.train_mask].view(-1)
-    logits = out[data.train_mask]
-
-    # 🔍 Check for invalid label indices
-    if labels.max() >= logits.size(1) or labels.min() < 0:
-        print(f"❌ Invalid label values detected. Label range: [{labels.min()} - {labels.max()}], Expected: [0 - {logits.size(1) - 1}]")
-        print(f"Logits shape: {logits.shape}")
-        raise ValueError("CrossEntropy target contains invalid class index.")
-
-    loss = F.cross_entropy(logits, labels, label_smoothing=getattr(args, 'label_smoothing', 0.0))
-    loss.backward()
-    optimizer.step()
+        loss.backward()
+        optimizer.step()
     return loss.item()
 
 
@@ -43,10 +54,12 @@ def evaluate_full(model, data):
     # Ensure data is on the same device as the model
     data = data.to(next(model.parameters()).device)
 
-    if isinstance(model, AGNNet):
-        out = model(data.x, data.edge_index, edge_weight=None)
-    else:
-        out = model(data)
+    use_amp = next(model.parameters()).is_cuda
+    with autocast(enabled=use_amp):
+        if isinstance(model, AGNNet):
+            out = model(data.x, data.edge_index, edge_weight=None)
+        else:
+            out = model(data)
 
     pred = out.argmax(dim=1)
     accs = []
@@ -63,42 +76,51 @@ def train_epoch_sampled(model, loader, optimizer, args):
     model.train()
     total_loss = 0
 
+    use_amp = bool(getattr(args, '_use_amp', False))
+    scaler = getattr(args, '_grad_scaler', None)
+
     for batch in loader:
         optimizer.zero_grad()
         batch = batch.to(next(model.parameters()).device)
 
-        if isinstance(model, AGN_TYPES):
-            out = model(
-                batch.x,
-                batch.edge_index,
-                edge_weight=getattr(batch, 'edge_weight', None),
-                batch=getattr(batch, 'batch', None)
-            )
-        else:
-            out = model(batch)
-
-        # Use only seed nodes (first batch.batch_size) for supervision in sampled training
-        assert out.size(0) == batch.x.size(0), f"Output size {out.size()} does not match batch.x {batch.x.size()}."
-        seed_size = int(getattr(batch, "batch_size", 0))
-        if seed_size <= 0 or seed_size > out.size(0):
-            # Fallback: try to infer from train_mask if available
-            if hasattr(batch, "train_mask") and isinstance(batch.train_mask, torch.Tensor) and batch.train_mask.dtype == torch.bool:
-                seed_size = int(batch.train_mask.sum().item())
+        with autocast(enabled=use_amp):
+            if isinstance(model, AGN_TYPES):
+                out = model(
+                    batch.x,
+                    batch.edge_index,
+                    edge_weight=getattr(batch, 'edge_weight', None),
+                    batch=getattr(batch, 'batch', None)
+                )
             else:
-                seed_size = out.size(0)
-        logits = out[:seed_size]
-        labels = batch.y[:seed_size].view(-1).long()
+                out = model(batch)
 
-        # Filter to valid labels to avoid device-side asserts
-        if labels.numel() == 0:
-            continue
-        valid_mask = (labels >= 0) & (labels < logits.size(1))
-        if valid_mask.sum().item() == 0:
-            continue
+            # Use only seed nodes (first batch.batch_size) for supervision in sampled training
+            assert out.size(0) == batch.x.size(0), f"Output size {out.size()} does not match batch.x {batch.x.size()}."
+            seed_size = int(getattr(batch, "batch_size", 0))
+            if seed_size <= 0 or seed_size > out.size(0):
+                # Fallback: try to infer from train_mask if available
+                if hasattr(batch, "train_mask") and isinstance(batch.train_mask, torch.Tensor) and batch.train_mask.dtype == torch.bool:
+                    seed_size = int(batch.train_mask.sum().item())
+                else:
+                    seed_size = out.size(0)
+            logits = out[:seed_size]
+            labels = batch.y[:seed_size].view(-1).long()
 
-        loss = F.cross_entropy(logits[valid_mask], labels[valid_mask], label_smoothing=getattr(args, 'label_smoothing', 0.0))
-        loss.backward()
-        optimizer.step()
+            # Filter to valid labels to avoid device-side asserts
+            if labels.numel() == 0:
+                continue
+            valid_mask = (labels >= 0) & (labels < logits.size(1))
+            if valid_mask.sum().item() == 0:
+                continue
+
+            loss = F.cross_entropy(logits[valid_mask], labels[valid_mask], label_smoothing=getattr(args, 'label_smoothing', 0.0))
+        if scaler is not None and use_amp:
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            loss.backward()
+            optimizer.step()
         total_loss += loss.item()
 
     return total_loss / len(loader)
@@ -111,18 +133,20 @@ def evaluate_sampled(model, loader):
     model.eval()
     total_correct = [0, 0, 0]
     total = [0, 0, 0]
+    use_amp = next(model.parameters()).is_cuda
     for batch in loader:
         batch = batch.to(next(model.parameters()).device)
 
-        if isinstance(model, AGN_TYPES):
-            out = model(
-                batch.x,
-                batch.edge_index,
-                edge_weight=getattr(batch, 'edge_weight', None),
-                batch=getattr(batch, 'batch', None)
-            )
-        else:
-            out = model(batch)
+        with autocast(enabled=use_amp):
+            if isinstance(model, AGN_TYPES):
+                out = model(
+                    batch.x,
+                    batch.edge_index,
+                    edge_weight=getattr(batch, 'edge_weight', None),
+                    batch=getattr(batch, 'batch', None)
+                )
+            else:
+                out = model(batch)
 
         pred = out.argmax(dim=-1)
 
@@ -192,16 +216,18 @@ def _evaluate_on_partitions(model, data, num_parts):
     model.eval()
     parts = partition_graph(data, num_parts)
     device = next(model.parameters()).device
+    use_amp = next(model.parameters()).is_cuda
     # accumulate correct/total across partitions for train/val/test
     totals = [0, 0, 0]
     corrects = [0, 0, 0]
     for i, part in enumerate(parts, start=1):
         print(f"[Partition {i}/{len(parts)}] evaluating...")
         part = part.to(device)
-        if isinstance(model, AGN_TYPES):
-            out = model(part.x, part.edge_index, edge_weight=None)
-        else:
-            out = model(part)
+        with autocast(enabled=use_amp):
+            if isinstance(model, AGN_TYPES):
+                out = model(part.x, part.edge_index, edge_weight=None)
+            else:
+                out = model(part)
         pred = out.argmax(dim=1)
         masks = [part.train_mask, part.val_mask, part.test_mask]
         ys = part.y
@@ -229,6 +255,17 @@ def run_training_session(
     """
     Orchestrates the full training and evaluation process with CUDA OOM fallback.
     """
+    # Initialize AMP and GradScaler once per session
+    try:
+        dev_is_cuda = (getattr(device, 'type', None) == 'cuda') or next(model.parameters()).is_cuda
+    except Exception:
+        dev_is_cuda = torch.cuda.is_available()
+    use_amp_cfg = bool(getattr(args, 'use_amp', True))
+    use_amp = bool(use_amp_cfg and torch.cuda.is_available() and dev_is_cuda)
+    setattr(args, '_use_amp', use_amp)
+    scaler = GradScaler(enabled=use_amp) if use_amp else None
+    setattr(args, '_grad_scaler', scaler)
+
     # Optimizer selection
     if getattr(args, 'optimizer', 'adamw').lower() == 'adamw':
         optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)

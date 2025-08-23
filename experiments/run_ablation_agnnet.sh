@@ -25,7 +25,7 @@ if [ ! -d "$PROJECT_ROOT/simple_data" ]; then
 fi
 
 # Default hyperparameters for the ablation baseline
-EPOCHS=${EPOCHS:-50}
+EPOCHS=${EPOCHS:-2}
 HIDDEN=128
 LAYERS=3
 DROPOUT=0.25

@@ -221,11 +221,15 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
     # Load dataset once per search run to avoid redundant I/O and preprocessing
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     data, feat_dim, num_classes = data_loader.load_dataset(name=dataset, root="simple_data")
-    if model_name.lower() != "tgn" and getattr(data, 'num_nodes', 0) <= 200_000:
+    # Mirror main.py: skip SMOTE for TGAT on OGB-Arxiv and for TGN or very large graphs
+    if (model_name.lower() != "tgn"
+        and not (model_name.lower() == "tgat" and dataset == "OGB-Arxiv")
+        and getattr(data, 'num_nodes', 0) <= 200_000):
         data = data_loader.apply_smote(data)
     else:
         print("Skipping SMOTE for this configuration to avoid memory blow-up.")
-    is_sampled_dataset = dataset == "Reddit"
+    # Use sampled NeighborLoader for Reddit and for TGAT on OGB-Arxiv to avoid OOM
+    is_sampled_dataset = (dataset == "Reddit") or (dataset == "OGB-Arxiv" and model_name.lower() == "tgat")
     if not is_sampled_dataset:
         data = data.to(device)
 
@@ -475,7 +479,7 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
             setattr(args, "num_nodes", data.num_nodes)
             model = create_model(model_name, feat_dim, num_classes, args).to(device)
 
-            is_sampled = dataset == "Reddit"
+            is_sampled = is_sampled_dataset
             if is_sampled:
                 deps_available = False
                 try:

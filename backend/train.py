@@ -253,6 +253,10 @@ def run_training_session(
     best_val_acc = 0
     best_test_acc = 0
 
+    # Early stopping configuration
+    patience = getattr(args, 'early_stop_patience', None)
+    epochs_without_improve = 0
+
     print(f"\n=== Training {args.model} on {args.dataset} for {args.epochs} epochs ===")
 
     # Partition fallback state
@@ -320,10 +324,18 @@ def run_training_session(
         if scheduler is not None:
             scheduler.step()
 
-        if val_acc > best_val_acc:
+        improved = val_acc > best_val_acc
+        if improved:
             best_val_acc = val_acc
             if not is_sampled:
                 best_test_acc = test_acc
+            epochs_without_improve = 0
+        else:
+            if patience is not None:
+                epochs_without_improve += 1
+                if epochs_without_improve >= patience:
+                    print(f"Early stopping triggered at epoch {epoch} (patience={patience}).")
+                    break
 
         test_acc_str = f"{test_acc:.4f}" if test_acc != -1 else "N/A"
         part_info = f" | Partitions: {chosen_parts}" if partition_enabled else ""

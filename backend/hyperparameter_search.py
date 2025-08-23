@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import itertools
+import random
 import torch
 
 import data_loader
@@ -189,7 +190,9 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
         except Exception:
             agn_max_trials = 3
         if len(combos) > agn_max_trials:
-            combos = combos[:agn_max_trials]
+            seed = int(os.environ.get("AGN_HPO_SEED", "0"))
+            rnd = random.Random(seed)
+            combos = rnd.sample(combos, agn_max_trials)
         try:
             agn_hpo_epochs = int(os.environ.get("AGN_HPO_EPOCHS", "5"))
         except Exception:
@@ -215,6 +218,29 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
 
     Path(save_dir).mkdir(parents=True, exist_ok=True)
 
+    # Load dataset once per search run to avoid redundant I/O and preprocessing
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    data, feat_dim, num_classes = data_loader.load_dataset(name=dataset, root="simple_data")
+    if model_name.lower() != "tgn" and getattr(data, 'num_nodes', 0) <= 200_000:
+        data = data_loader.apply_smote(data)
+    else:
+        print("Skipping SMOTE for this configuration to avoid memory blow-up.")
+    is_sampled_dataset = dataset == "Reddit"
+    if not is_sampled_dataset:
+        data = data.to(device)
+
+    # Precompute Reddit partitions once to avoid recomputation per trial
+    precomputed_parts = None
+    precomputed_num_parts = None
+    if dataset == "Reddit":
+        precomputed_num_parts = int(os.environ.get("PARTITIONS", "32"))
+        if agn_fast:
+            try:
+                precomputed_num_parts = max(1, min(precomputed_num_parts, agn_partitions))
+            except Exception:
+                precomputed_num_parts = max(1, precomputed_num_parts)
+        precomputed_parts = data_loader.partition_graph(data, precomputed_num_parts)
+
     for combo in combos:
         params = dict(zip(keys, combo))
         args = argparse.Namespace(**params)
@@ -238,28 +264,19 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
         for field, val in defaults.items():
             if not hasattr(args, field):
                 setattr(args, field, val)
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        data, feat_dim, num_classes = data_loader.load_dataset(name=dataset, root="simple_data")
-        # Align SMOTE usage with main path to avoid OOM on large graphs
-        if model_name.lower() != "tgn" and getattr(data, 'num_nodes', 0) <= 200_000:
-            data = data_loader.apply_smote(data)
-        else:
-            print("Skipping SMOTE for this configuration to avoid memory blow-up.")
-        # Keep full graph on CPU for sampled training (e.g., Reddit) to avoid GPU OOM in NeighborLoader init
-        is_sampled_dataset = dataset == "Reddit"
-        if not is_sampled_dataset:
-            data = data.to(device)
+        # Enable early stopping during AGNNet HPO to speed up trials
+        if agn_fast:
+            try:
+                args.early_stop_patience = int(os.environ.get("AGN_EARLY_STOP", "2"))
+            except Exception:
+                args.early_stop_patience = 2
 
         # Reddit: run hyperparameter search separately for each partition and report/save per-part best
         if dataset == "Reddit":
             from torch_geometric.loader import NeighborLoader
-            num_parts = int(os.environ.get("PARTITIONS", "32"))
-            if agn_fast:
-                try:
-                    num_parts = max(1, min(num_parts, agn_partitions))
-                except Exception:
-                    num_parts = max(1, num_parts)
-            parts = data_loader.partition_graph(data, num_parts)
+            # Use precomputed partitions for efficiency
+            num_parts = precomputed_num_parts if precomputed_num_parts is not None else int(os.environ.get("PARTITIONS", "32"))
+            parts = precomputed_parts if precomputed_parts is not None else data_loader.partition_graph(data, num_parts)
             last_model_path = None
             last_param_path = None
             part_best_vals = []
@@ -303,6 +320,24 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
                         ([2] * args.num_layers, 32),
                     ]
 
+                # Build NeighborLoaders once per partition and reuse across all hyperparameter combos
+                attempts = neighbor_attempts()
+                if agn_fast and agn_neighbor_attempts is not None:
+                    attempts = attempts[:max(1, int(agn_neighbor_attempts))]
+                last_err = None
+                for ns, bs in attempts:
+                    try:
+                        train_loader, val_loader, test_loader = build_neighbor_loaders_part(ns, bs)
+                        last_err = None
+                        break
+                    except torch.cuda.OutOfMemoryError as e:
+                        last_err = e
+                        if torch.cuda.is_available():
+                            torch.cuda.empty_cache()
+                        continue
+                if last_err is not None:
+                    raise last_err
+
                 for combo in combos:
                     params = dict(zip(keys, combo))
                     part_args = argparse.Namespace(**params)
@@ -317,6 +352,12 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
                             setattr(part_args, field, val)
                     # Provide global num_nodes for TGN
                     setattr(part_args, "num_nodes", data.num_nodes)
+                    # Early stopping for AGNNet trials
+                    if agn_fast:
+                        try:
+                            part_args.early_stop_patience = int(os.environ.get("AGN_EARLY_STOP", "2"))
+                        except Exception:
+                            part_args.early_stop_patience = 2
 
                     model = create_model(model_name, feat_dim, num_classes, part_args).to(device)
 

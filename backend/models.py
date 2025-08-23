@@ -246,35 +246,62 @@ class AquaGraph:
         alpha = exp_e / (denom[dst] + 1e-16)
 
         if self.soft_topk and (topk is not None and topk > 0):
-            # keep top-k edges per destination, renormalize
-            # build per-node topk
-            num_edges = dst.numel()
-            device = x_proj.device
-            alpha_new = torch.zeros_like(alpha)
-            # group by dst node
-            # To avoid heavy scatter, we compute with index sorting
-            order = torch.argsort(dst)
-            dst_sorted = dst[order]
-            alpha_sorted = alpha[order]
-            start = 0
-            n = x_proj.size(0)
-            # iterate over contiguous blocks of same dst
-            while start < num_edges:
-                node = dst_sorted[start].item()
-                end = start
-                while end < num_edges and dst_sorted[end].item() == node:
-                    end += 1
-                block_idx = order[start:end]
-                block_alpha = alpha[block_idx]
-                if block_alpha.numel() > 0:
-                    k_eff = min(topk, block_alpha.numel())
-                    vals, idxs = torch.topk(block_alpha, k_eff, largest=True)
-                    sel = block_idx[idxs]
-                    # renormalize
-                    s = vals.sum() + 1e-16
-                    alpha_new[sel] = vals / s
-                start = end
-            alpha = alpha_new
+            try:
+                # keep top-k edges per destination, renormalize on current device (GPU if available)
+                num_edges = dst.numel()
+                device = x_proj.device
+                alpha_new = torch.zeros_like(alpha)
+                # group by dst node via sort to process contiguous blocks
+                order = torch.argsort(dst)
+                dst_sorted = dst[order]
+                start = 0
+                # iterate over contiguous blocks of same dst
+                while start < num_edges:
+                    node = dst_sorted[start].item()
+                    end = start
+                    while end < num_edges and dst_sorted[end].item() == node:
+                        end += 1
+                    block_idx = order[start:end]
+                    block_alpha = alpha[block_idx]
+                    if block_alpha.numel() > 0:
+                        k_eff = min(topk, block_alpha.numel())
+                        vals, idxs = torch.topk(block_alpha, k_eff, largest=True)
+                        sel = block_idx[idxs]
+                        # renormalize
+                        s = vals.sum() + 1e-16
+                        alpha_new[sel] = vals / s
+                    start = end
+                alpha = alpha_new
+            except torch.cuda.OutOfMemoryError:
+                # CPU fallback for soft top-k renormalization to avoid CUDA OOM
+                if torch.cuda.is_available():
+                    try:
+                        torch.cuda.empty_cache()
+                    except Exception:
+                        pass
+                device = alpha.device
+                dst_cpu = dst.to('cpu')
+                alpha_cpu = alpha.to('cpu')
+                num_edges = dst_cpu.numel()
+                alpha_new_cpu = torch.zeros_like(alpha_cpu)
+                order = torch.argsort(dst_cpu)
+                dst_sorted = dst_cpu[order]
+                start = 0
+                while start < num_edges:
+                    node = dst_sorted[start].item()
+                    end = start
+                    while end < num_edges and dst_sorted[end].item() == node:
+                        end += 1
+                    block_idx = order[start:end]
+                    block_alpha = alpha_cpu[block_idx]
+                    if block_alpha.numel() > 0:
+                        k_eff = min(topk, block_alpha.numel())
+                        vals, idxs = torch.topk(block_alpha, k_eff, largest=True)
+                        sel = block_idx[idxs]
+                        s = vals.sum() + 1e-16
+                        alpha_new_cpu[sel] = vals / s
+                    start = end
+                alpha = alpha_new_cpu.to(device)
         return alpha
 
     def select_subgraph(self, pi):

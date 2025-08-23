@@ -300,7 +300,7 @@ def run_training_session(
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
                 # Try increasing number of partitions until it fits
-                attempt_parts = [2, 4, 8, 16, 32]
+                attempt_parts = [2, 4, 8, 16, 32, 64, 128]
                 success = False
                 for nparts in attempt_parts:
                     try:

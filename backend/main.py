@@ -99,14 +99,17 @@ def main():
 
     # --- Data Loading ---
     data, feat_dim, num_classes = data_loader.load_dataset(name=args.dataset, root="simple_data")
-    # Avoid SMOTE for TGN or large graphs to prevent memory blow-up (e.g., TGN memory scales with num_nodes)
-    if args.model.lower() != "tgn" and getattr(data, 'num_nodes', 0) <= 200_000:
+    # Determine if we will use sampled mini-batch loaders
+    use_sampled_loaders = (args.dataset == "Reddit") or (args.dataset == "OGB-Arxiv" and args.model.lower() == "tgat")
+    # Avoid SMOTE for TGN or large graphs or TGAT on OGB-Arxiv to prevent memory blow-up
+    if (args.model.lower() != "tgn"
+        and not (args.model.lower() == "tgat" and args.dataset == "OGB-Arxiv")
+        and getattr(data, 'num_nodes', 0) <= 200_000):
         data = data_loader.apply_smote(data)
     else:
         print("Skipping SMOTE for this configuration to avoid memory blow-up.")
-    # Keep full graph on GPU unless sampled (e.g., Reddit) to avoid OOM in NeighborLoader init
-    is_sampled_dataset = args.dataset == "Reddit"
-    if not is_sampled_dataset:
+    # Keep full graph on GPU unless using sampled loaders to avoid OOM in NeighborLoader init
+    if not use_sampled_loaders:
         data = data.to(device)
 
     # --- Model Initialization ---
@@ -201,7 +204,7 @@ def main():
     print(f"\nModel Initialized: {args.model}")
 
     # --- Dataloader Setup ---
-    is_sampled = args.dataset == "Reddit"
+    is_sampled = use_sampled_loaders
     train_loader = val_loader = test_loader = None
 
     if is_sampled:
@@ -655,7 +658,7 @@ def main():
             part_model = part_model.to(device)
 
             # Build loaders for this partition using the same logic
-            part_is_sampled = (args.dataset == "Reddit")
+            part_is_sampled = (args.dataset == "Reddit") or (args.dataset == "OGB-Arxiv" and args.model.lower() == "tgat")
             if part_is_sampled:
                 neighbor_sizes = [15] * args.num_layers
                 batch_size = 512

@@ -87,6 +87,9 @@ class TGNMemory(nn.Module):
     def update(self, node_ids, messages, timestamps):
         prev_mem = self.memory[node_ids]
         updated_mem = self.update_fn(messages, prev_mem)
+        # Ensure dtype consistency (AMP autocast may produce Half tensors)
+        if updated_mem.dtype != self.memory.dtype:
+            updated_mem = updated_mem.to(dtype=self.memory.dtype)
         self.memory.data[node_ids] = updated_mem.data
         self.last_update.data[node_ids] = timestamps.float()
 

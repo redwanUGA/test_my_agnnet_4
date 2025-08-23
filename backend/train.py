@@ -2,7 +2,7 @@ import os
 import torch
 import torch.nn.functional as F
 from tqdm import tqdm
-from torch.cuda.amp import autocast, GradScaler
+# Using AMP via torch.amp (avoid deprecated torch.cuda.amp)
 # Ensure TGN is imported from models for isinstance checks
 from models import AGNNet, TGN
 AGN_TYPES = (AGNNet,)
@@ -19,7 +19,7 @@ def train_epoch_full(model, data, optimizer, args):
     use_amp = bool(getattr(args, '_use_amp', False))
     scaler = getattr(args, '_grad_scaler', None)
 
-    with autocast(enabled=use_amp):
+    with torch.amp.autocast('cuda', enabled=use_amp):
         if isinstance(model, AGN_TYPES):
             out = model(data.x, data.edge_index, edge_weight=None)
         else:
@@ -55,7 +55,7 @@ def evaluate_full(model, data):
     data = data.to(next(model.parameters()).device)
 
     use_amp = next(model.parameters()).is_cuda
-    with autocast(enabled=use_amp):
+    with torch.amp.autocast('cuda', enabled=use_amp):
         if isinstance(model, AGNNet):
             out = model(data.x, data.edge_index, edge_weight=None)
         else:
@@ -83,7 +83,7 @@ def train_epoch_sampled(model, loader, optimizer, args):
         optimizer.zero_grad()
         batch = batch.to(next(model.parameters()).device)
 
-        with autocast(enabled=use_amp):
+        with torch.amp.autocast('cuda', enabled=use_amp):
             if isinstance(model, AGN_TYPES):
                 out = model(
                     batch.x,
@@ -137,7 +137,7 @@ def evaluate_sampled(model, loader):
     for batch in loader:
         batch = batch.to(next(model.parameters()).device)
 
-        with autocast(enabled=use_amp):
+        with torch.amp.autocast('cuda', enabled=use_amp):
             if isinstance(model, AGN_TYPES):
                 out = model(
                     batch.x,
@@ -223,7 +223,7 @@ def _evaluate_on_partitions(model, data, num_parts):
     for i, part in enumerate(parts, start=1):
         print(f"[Partition {i}/{len(parts)}] evaluating...")
         part = part.to(device)
-        with autocast(enabled=use_amp):
+        with torch.amp.autocast('cuda', enabled=use_amp):
             if isinstance(model, AGN_TYPES):
                 out = model(part.x, part.edge_index, edge_weight=None)
             else:
@@ -263,7 +263,7 @@ def run_training_session(
     use_amp_cfg = bool(getattr(args, 'use_amp', True))
     use_amp = bool(use_amp_cfg and torch.cuda.is_available() and dev_is_cuda)
     setattr(args, '_use_amp', use_amp)
-    scaler = GradScaler(enabled=use_amp) if use_amp else None
+    scaler = torch.amp.GradScaler('cuda', enabled=use_amp) if use_amp else None
     setattr(args, '_grad_scaler', scaler)
 
     # Optimizer selection

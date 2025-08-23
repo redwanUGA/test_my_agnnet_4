@@ -68,13 +68,53 @@ Experiments (ready-to-run scripts)
 - Models: BaselineGCN, GraphSAGE, GAT, TGAT, TGN, AGNNet
 - Datasets: OGB-Arxiv, Reddit, TGB-Wiki, MOOC
 
-Key CLI flags (see `--help` for all):
-- `--epochs` (int, required), `--lr` (0.01), `--hidden-channels` (64), `--dropout` (0.5), `--weight-decay` (5e-4), `--num-layers` (2)
-- SAGE: `--aggr` (mean)
-- GAT/TGAT: `--heads` (2), TGAT: `--time-dim` (32)
-- TGN: `--mem` (100), `--encoder` (64)
-- AGNNet: `--tau` (0.9), `--k` (8), `--k-anneal`, `--k-min` (2), `--k-max` (defaults to k), `--ffn-expansion` (2.0), `--soft-topk`, `--edge-threshold` (0.0), `--disable-pred-subgraph`, `--no-self-loops`
-- Experiment mode: `--ova-smote` (One‑vs‑All with per-class SMOTE)
+All CLI arguments for backend\main.py (single-run trainer):
+- --model (required; choices: BaselineGCN, GraphSAGE, GAT, TGAT, TGN, AGNNet): Model architecture to use.
+- --dataset (required; choices: OGB-Arxiv, Reddit, TGB-Wiki, MOOC): Dataset to train on.
+- --epochs (int, required): Number of training epochs.
+- --lr (float, default 0.01): Learning rate.
+- --hidden-channels (int, default 64): Hidden dimension size.
+- --dropout (float, default 0.5): Dropout probability.
+- --weight-decay (float, default 5e-4): Weight decay.
+- --num-layers (int, default 2): Number of GNN layers.
+- --aggr (str, default "mean"): Aggregator for GraphSAGE.
+- --heads (int, default 2): Number of attention heads for GAT/TGAT.
+- --time-dim (int, default 32): Temporal dimension for TGAT.
+- --mem (int, default 100): Memory dimension for TGN.
+- --encoder (int, default 64): Encoder dimension for TGN.
+- --tau (float, default 0.9): Temperature/threshold tau for AGNNet.
+- --k (int, default 8): Neighborhood/Top-k cap for AGNNet.
+- --k-anneal (flag): Enable annealing k over epochs for AGNNet.
+- --k-min (int, default 2): Minimum k for annealing.
+- --k-max (int, default None): Maximum k for annealing (defaults to --k if omitted).
+- --ffn-expansion (float, default 2.0): FFN expansion factor in AGN blocks.
+- --soft-topk (flag): Use soft attention with top-k cap.
+- --edge-threshold (float, default 0.0): Keep edges with attention logits above this threshold before top-k cap.
+- --disable-pred-subgraph (flag): Ablate predictive-subgraph selection (use full graph).
+- --no-self-loops (flag): Disable forced self-loops in AGNNet subgraph.
+- --optimizer (str, default "adamw"; choices: adam, adamw): Optimizer choice.
+- --lr-schedule (str, default "cosine"; choices: none, cosine): LR scheduler.
+- --warmup-epochs (int, default 500): Warmup steps for cosine schedule (epochs).
+- --label-smoothing (float, default 0.0): Label smoothing for CrossEntropyLoss.
+- --load-model (path, default None): Path to model checkpoint.
+- --config (path, default None): JSON file with hyperparameters (overrides matching CLI values).
+- --num-parts (int, default 4): Number of partitions to use on OOM fallback.
+- --ova-smote (flag): Run One-vs-All experiments with per-class SMOTE; prints OVA_AVG_ACCURACY.
+
+Other CLI commands and their arguments:
+- backend\hyperparameter_search.py
+  - --model (required)
+  - --dataset (required)
+  - --epochs (int, default 20)
+  - --save-dir (path, default "saved_models")
+- backend\count_saved_model_params.py
+  - --dir (path, default "saved_models"): Directory containing saved .pt files
+  - --verbose (flag): Print layer-wise parameter counts
+- experiments\run_param_scaling_ova.py
+  - --output-csv (path, default results/param_scaling_ova_results.csv)
+  - --epochs (int, default 5): Epochs per OVA run (per class)
+  - --datasets (list, default: OGB-Arxiv Reddit TGB-Wiki MOOC)
+  - --models (list, default: BaselineGCN GraphSAGE GAT TGAT AGNNet; TGN skipped inside script)
 
 
 ## How to run any architecture on any dataset from the command line

@@ -445,7 +445,7 @@ class AGNNet(nn.Module):
                 sub_edge_index = torch.cat([sub_edge_index, loops], dim=1)
 
         if sub_nodes.numel() == 0:
-            return torch.zeros(num_nodes, self.output_proj.out_features, device=x.device)
+            return torch.zeros(num_nodes, self.output_proj.out_features, device=x.device, dtype=x.dtype)
 
         sub_x = x[sub_nodes]
         sub_pi = pi[sub_nodes]
@@ -460,7 +460,7 @@ class AGNNet(nn.Module):
 
         # Project to logits and scatter back
         sub_logits = self.output_proj(h)  # raw logits (no softmax)
-        full_logits = torch.zeros(num_nodes, sub_logits.shape[1], device=x.device)
+        full_logits = torch.zeros(num_nodes, sub_logits.shape[1], device=sub_logits.device, dtype=sub_logits.dtype)
         full_logits[sub_nodes] = sub_logits
 
         # Update memory only on visited nodes

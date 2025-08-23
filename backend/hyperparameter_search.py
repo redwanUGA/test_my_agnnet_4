@@ -194,9 +194,9 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
             rnd = random.Random(seed)
             combos = rnd.sample(combos, agn_max_trials)
         try:
-            agn_hpo_epochs = int(os.environ.get("AGN_HPO_EPOCHS", "5"))
+            agn_hpo_epochs = int(os.environ.get("AGN_HPO_EPOCHS", "20"))
         except Exception:
-            agn_hpo_epochs = 5
+            agn_hpo_epochs = 20
         agn_hpo_epochs = max(1, min(agn_hpo_epochs, epochs))
         # Limits for Reddit partitions and NeighborLoader attempts
         try:
@@ -604,7 +604,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", required=True)
     parser.add_argument("--dataset", required=True)
-    parser.add_argument("--epochs", type=int, default=2)
+    parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--save-dir", default="saved_models")
     args = parser.parse_args()
     run_search(args.model, args.dataset, epochs=args.epochs, save_dir=args.save_dir)

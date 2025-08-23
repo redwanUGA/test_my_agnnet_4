@@ -66,24 +66,41 @@ Notes:
 - For TGN or very large graphs the per-class SMOTE step is skipped to avoid memory blow-ups.
 
 ## Parameter-Scaling OVA Experiments (CSV Output)
-Generate seven variants per model by scaling trainable parameter counts from ~10M to ~100M, run OVA-SMOTE accuracy for each dataset/model variant, and save results to CSV.
+Generate seven variants per model by scaling trainable parameter counts from ~10M to ~100M, run OVA-SMOTE accuracy for each dataset/model variant, and save results to a CSV file.
 
-Usage (Python skeleton delegates heavy work to .sh/.bat):
+Important: Only the Python driver writes the CSV. Do not call the .sh/.bat directly if you want the CSV to be generated.
+
+Quick example (single dataset/model to sanity-check CSV generation):
 ```bash
 # From the project root
+python experiments/run_param_scaling_ova.py --epochs 3 --output-csv results/param_scaling_ova_results.csv \
+  --datasets OGB-Arxiv \
+  --models BaselineGCN
+```
+Full run across all supported datasets/models:
+- On Unix-like systems (bash):
+```bash
 python experiments/run_param_scaling_ova.py --epochs 5 --output-csv results/param_scaling_ova_results.csv \
   --datasets OGB-Arxiv Reddit TGB-Wiki MOOC \
   --models BaselineGCN GraphSAGE GAT TGAT AGNNet
 ```
-Internally, the Python script computes model variants and then calls:
-- experiments/run_param_scaling_ova.sh on Unix-like systems, or
-- experiments/run_param_scaling_ova.bat on Windows,
-passing the selected hyperparameters per run. The backend CLI prints a standardized line like `OVA_AVG_ACCURACY=0.873421` which the skeleton parses to write the CSV.
+- On Windows (PowerShell/CMD):
+```bat
+python experiments\run_param_scaling_ova.py --epochs 5 --output-csv results\param_scaling_ova_results.csv ^
+  --datasets OGB-Arxiv Reddit TGB-Wiki MOOC ^
+  --models BaselineGCN GraphSAGE GAT TGAT AGNNet
+```
+What happens under the hood:
+- The Python driver precomputes parameter-scaled variants, then calls:
+  - experiments/run_param_scaling_ova.sh on Unix-like systems, or
+  - experiments/run_param_scaling_ova.bat on Windows.
+- backend/main.py prints a standardized line like `OVA_AVG_ACCURACY=0.873421`, which the driver parses and appends to the CSV.
 
-Notes:
-- The CSV will contain: dataset, model, param_count, average_ova_accuracy (validation average).
-- TGN is skipped here because its parameter count is dominated by node-dependent memory state, making counts incomparable.
-- You can adjust epochs to trade off runtime vs accuracy. The script searches simple grids over hidden size and number of layers to approximate target parameter counts.
+Notes and tips:
+- Ensure datasets are downloaded to `simple_data/` (see DOWNLOAD_INSTRUCTIONS.md) before running; otherwise, runs will be skipped.
+- The CSV columns are: dataset, model, param_count, average_ova_accuracy (validation average).
+- TGN is intentionally excluded from this scaling sweep because its parameter count is dominated by node-dependent memory state.
+- You can adjust `--epochs` to trade off runtime vs accuracy. The script searches simple grids over hidden size and number of layers to approximate target parameter counts.
 
 ## Ablation Study: AGNNet
 This repo includes a ready-to-run, reproducible ablation study for AGNNet that isolates the contribution of its main components. The ablation compares a baseline AGNNet configuration against targeted removals/toggles across all supported datasets.

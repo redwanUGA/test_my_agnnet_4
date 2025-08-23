@@ -229,60 +229,79 @@ class AquaGraph:
 
     def compute_alpha(self, x_proj, edge_index, pi, att_mlp, tau=1.0, clip=5.0, topk=None):
         src, dst = edge_index
-        h_i, h_j, p_j = x_proj[dst], x_proj[src], pi[src].unsqueeze(1)
-        e_ij = torch.cat([h_i, h_j, p_j], dim=1)
-        e = att_mlp(e_ij).squeeze(-1)
-        # stability: pre-norm will be applied outside; here clamp and temperature
-        e = F.leaky_relu(e, 0.2)
-        if tau is not None and tau > 0:
-            e = e / tau
-        e = torch.clamp(e, -clip, clip)
-
-        # compute soft attention per-destination node with optional threshold and top-k cap
-        # compute exp and denom per dst
-        exp_e = torch.exp(e)
-        # apply edge threshold by masking small logits first if requested
-        if self.edge_threshold is not None and self.edge_threshold > 0:
-            mask = e >= self.edge_threshold
-            exp_e = exp_e * mask.float()
-        denom = torch.zeros(x_proj.size(0), device=x_proj.device).index_add_(0, dst, exp_e)
-        alpha = exp_e / (denom[dst] + 1e-16)
-
+        E = dst.numel()
+        device = x_proj.device
+        # Determine a chunk size that limits the temporary edge feature tensor to ~64MB
+        hdim = int(x_proj.size(1))
+        bytes_per = torch.tensor([], dtype=x_proj.dtype, device=device).element_size()
+        max_bytes = 64 * 1024 * 1024  # ~64MB budget for e_ij per chunk
+        denom = torch.zeros(x_proj.size(0), device=device)
+        exp_e = torch.empty(E, device=device, dtype=x_proj.dtype)
+        # conservative floor to avoid tiny chunks
+        min_chunk = 4096
+        elems_per_edge = (2 * hdim + 1)
+        chunk_size = max(min_chunk, int(max_bytes // max(1, (elems_per_edge * bytes_per))))
+        if chunk_size <= 0:
+            chunk_size = min_chunk
+        # Pass 1: compute exp(e) per edge in chunks and accumulate denom over dst
+        for start in range(0, E, chunk_size):
+            end = min(E, start + chunk_size)
+            s = src[start:end]
+            d = dst[start:end]
+            h_i = x_proj[d]
+            h_j = x_proj[s]
+            p_j = pi[s].unsqueeze(1)
+            e_ij = torch.cat([h_i, h_j, p_j], dim=1)
+            e = att_mlp(e_ij).squeeze(-1)
+            e = F.leaky_relu(e, 0.2)
+            if tau is not None and tau > 0:
+                e = e / tau
+            e = torch.clamp(e, -clip, clip)
+            exp_vals = torch.exp(e)
+            if self.edge_threshold is not None and self.edge_threshold > 0:
+                mask = e >= self.edge_threshold
+                exp_vals = exp_vals * mask.to(exp_vals.dtype)
+            exp_e[start:end] = exp_vals
+            # accumulate denominator per destination node
+            denom.index_add_(0, d, exp_vals)
+            # free temporaries sooner
+            del h_i, h_j, p_j, e_ij, e, exp_vals
+        # Pass 2: compute alpha per edge using accumulated denom
+        alpha = torch.empty(E, device=device, dtype=x_proj.dtype)
+        for start in range(0, E, chunk_size):
+            end = min(E, start + chunk_size)
+            d = dst[start:end]
+            alpha[start:end] = exp_e[start:end] / (denom[d] + 1e-16)
+        # Optional soft top-k per destination with GPU-first, CPU fallback
         if self.soft_topk and (topk is not None and topk > 0):
             try:
-                # keep top-k edges per destination, renormalize on current device (GPU if available)
                 num_edges = dst.numel()
-                device = x_proj.device
                 alpha_new = torch.zeros_like(alpha)
-                # group by dst node via sort to process contiguous blocks
                 order = torch.argsort(dst)
                 dst_sorted = dst[order]
                 start = 0
-                # iterate over contiguous blocks of same dst
                 while start < num_edges:
-                    node = dst_sorted[start].item()
+                    node = int(dst_sorted[start].item())
                     end = start
-                    while end < num_edges and dst_sorted[end].item() == node:
+                    while end < num_edges and int(dst_sorted[end].item()) == node:
                         end += 1
                     block_idx = order[start:end]
                     block_alpha = alpha[block_idx]
                     if block_alpha.numel() > 0:
-                        k_eff = min(topk, block_alpha.numel())
+                        k_eff = min(int(topk), block_alpha.numel())
                         vals, idxs = torch.topk(block_alpha, k_eff, largest=True)
                         sel = block_idx[idxs]
-                        # renormalize
                         s = vals.sum() + 1e-16
                         alpha_new[sel] = vals / s
                     start = end
                 alpha = alpha_new
             except torch.cuda.OutOfMemoryError:
-                # CPU fallback for soft top-k renormalization to avoid CUDA OOM
                 if torch.cuda.is_available():
                     try:
                         torch.cuda.empty_cache()
                     except Exception:
                         pass
-                device = alpha.device
+                device_prev = alpha.device
                 dst_cpu = dst.to('cpu')
                 alpha_cpu = alpha.to('cpu')
                 num_edges = dst_cpu.numel()
@@ -291,20 +310,20 @@ class AquaGraph:
                 dst_sorted = dst_cpu[order]
                 start = 0
                 while start < num_edges:
-                    node = dst_sorted[start].item()
+                    node = int(dst_sorted[start].item())
                     end = start
-                    while end < num_edges and dst_sorted[end].item() == node:
+                    while end < num_edges and int(dst_sorted[end].item()) == node:
                         end += 1
                     block_idx = order[start:end]
                     block_alpha = alpha_cpu[block_idx]
                     if block_alpha.numel() > 0:
-                        k_eff = min(topk, block_alpha.numel())
+                        k_eff = min(int(topk), block_alpha.numel())
                         vals, idxs = torch.topk(block_alpha, k_eff, largest=True)
                         sel = block_idx[idxs]
                         s = vals.sum() + 1e-16
                         alpha_new_cpu[sel] = vals / s
                     start = end
-                alpha = alpha_new_cpu.to(device)
+                alpha = alpha_new_cpu.to(device_prev)
         return alpha
 
     def select_subgraph(self, pi):

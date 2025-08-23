@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Enable allocator segments to reduce fragmentation unless already set
+export PYTORCH_CUDA_ALLOC_CONF=${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}
+
 # AGNNet Ablation Study Runner (Unix)
 # This script runs a compact set of ablations isolating key components of AGNNet.
 # Results/logs are saved under logs/ with a timestamp; each run prints config.
@@ -32,34 +35,41 @@ TAU=0.9
 K=8
 
 # Datasets to evaluate. Reddit is sampled, others are full-batch.
+# You can override datasets by exporting DATASETS_OVERRIDE="OGB-Arxiv" (space-separated list)
 DATASETS=(OGB-Arxiv Reddit TGB-Wiki MOOC)
+if [ -n "${DATASETS_OVERRIDE:-}" ]; then
+  IFS=' ' read -r -a DATASETS <<< "$DATASETS_OVERRIDE"
+  echo "[INFO] DATASETS overridden: ${DATASETS[*]}"
+fi
 
 for D in "${DATASETS[@]}"; do
   echo "$(date) ===== Dataset: $D ====="
 
-  # 1) Baseline
-  echo "$(date) AGNNet/base ds=$D"
-  python "$PROJECT_ROOT/backend/main.py" \
-    --model AGNNet \
-    --dataset "$D" \
-    --epochs "$EPOCHS" \
-    --hidden-channels "$HIDDEN" \
-    --num-layers "$LAYERS" \
-    --dropout "$DROPOUT" \
-    --tau "$TAU" \
-    --k "$K" \
-    --k-anneal \
-    --k-min 2 \
-    --k-max "$K" \
-    --soft-topk \
-    --ffn-expansion 2.0 \
-    --optimizer adamw \
-    --lr "$LR" \
-    --weight-decay "$WD" \
-    --lr-schedule cosine \
-    --warmup-epochs 500 \
-    --label-smoothing 0.05 \
-    --edge-threshold 0.0
+  # 1) Baseline (can be skipped by setting SKIP_BASELINE=1)
+  if [ "${SKIP_BASELINE:-0}" -ne 1 ]; then
+    echo "$(date) AGNNet/base ds=$D"
+    python "$PROJECT_ROOT/backend/main.py" \
+      --model AGNNet \
+      --dataset "$D" \
+      --epochs "$EPOCHS" \
+      --hidden-channels "$HIDDEN" \
+      --num-layers "$LAYERS" \
+      --dropout "$DROPOUT" \
+      --tau "$TAU" \
+      --k "$K" \
+      --k-anneal \
+      --k-min 2 \
+      --k-max "$K" \
+      --soft-topk \
+      --ffn-expansion 2.0 \
+      --optimizer adamw \
+      --lr "$LR" \
+      --weight-decay "$WD" \
+      --lr-schedule cosine \
+      --warmup-epochs 500 \
+      --label-smoothing 0.05 \
+      --edge-threshold 0.0
+  fi
 
   # 2) No predictive subgraph
   echo "$(date) AGNNet/ablate:no_pred_subgraph ds=$D"

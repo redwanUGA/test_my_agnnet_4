@@ -1,6 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
 
+REM Reduce CUDA fragmentation unless overridden
+if "%PYTORCH_CUDA_ALLOC_CONF%"=="" set "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True"
+
 REM AGNNet Ablation Study Runner (Windows)
 REM This script runs a compact set of ablations isolating key components of AGNNet.
 REM Results/logs are saved under logs/ with a timestamp; each run prints config.
@@ -29,6 +32,8 @@ set "K=8"
 
 REM Datasets to evaluate. Reddit is sampled, others are full-batch.
 set DATASETS=OGB-Arxiv Reddit TGB-Wiki MOOC
+REM Optionally override datasets via environment variable (space-separated)
+if not "%DATASETS_OVERRIDE%"=="" set "DATASETS=%DATASETS_OVERRIDE%"
 
 REM Ablation variants (name -> flag set):
 REM 1) baseline: full AGNNet
@@ -42,28 +47,30 @@ for %%D in (%DATASETS%) do (
   echo [!DATE! !TIME!] ===== Dataset: %%D =====
 
   REM 1) Baseline
-  echo [!DATE! !TIME!] AGNNet/base ds=%%D
-  python main.py ^
-    --model AGNNet ^
-    --dataset %%D ^
-    --epochs %EPOCHS% ^
-    --hidden-channels %HIDDEN% ^
-    --num-layers %LAYERS% ^
-    --dropout %DROPOUT% ^
-    --tau %TAU% ^
-    --k %K% ^
-    --k-anneal ^
-    --k-min 2 ^
-    --k-max %K% ^
-    --soft-topk ^
-    --ffn-expansion 2.0 ^
-    --optimizer adamw ^
-    --lr %LR% ^
-    --weight-decay %WD% ^
-    --lr-schedule cosine ^
-    --warmup-epochs 500 ^
-    --label-smoothing 0.05 ^
-    --edge-threshold 0.0
+  if not "%SKIP_BASELINE%"=="1" (
+    echo [!DATE! !TIME!] AGNNet/base ds=%%D
+    python main.py ^
+      --model AGNNet ^
+      --dataset %%D ^
+      --epochs %EPOCHS% ^
+      --hidden-channels %HIDDEN% ^
+      --num-layers %LAYERS% ^
+      --dropout %DROPOUT% ^
+      --tau %TAU% ^
+      --k %K% ^
+      --k-anneal ^
+      --k-min 2 ^
+      --k-max %K% ^
+      --soft-topk ^
+      --ffn-expansion 2.0 ^
+      --optimizer adamw ^
+      --lr %LR% ^
+      --weight-decay %WD% ^
+      --lr-schedule cosine ^
+      --warmup-epochs 500 ^
+      --label-smoothing 0.05 ^
+      --edge-threshold 0.0
+  )
 
   REM 2) No predictive subgraph
   echo [!DATE! !TIME!] AGNNet/ablate:no_pred_subgraph ds=%%D

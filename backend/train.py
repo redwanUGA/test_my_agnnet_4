@@ -13,7 +13,7 @@ from simple_sampler import SimpleNeighborLoader
 
 def train_epoch_full(model, data, optimizer, args):
     model.train()
-    optimizer.zero_grad()
+    optimizer.zero_grad(set_to_none=True)
 
     # Ensure data is on the same device as the model
     data = data.to(next(model.parameters()).device)

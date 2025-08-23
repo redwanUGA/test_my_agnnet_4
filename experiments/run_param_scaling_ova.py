@@ -6,9 +6,9 @@ from typing import Dict, List, Tuple
 
 import torch
 
-import data_loader
-import models
-import ova_smote
+from backend import data_loader
+from backend import models
+from backend import ova_smote
 
 
 SUPPORTED_MODELS = [

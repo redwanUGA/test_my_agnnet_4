@@ -176,4 +176,6 @@ for D in "${DATASETS[@]}"; do
     --label-smoothing 0.05 \
     --edge-threshold 0.0
 
+done
+
 echo "[DONE] Ablation experiments completed."

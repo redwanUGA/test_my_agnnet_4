@@ -95,7 +95,16 @@ def main():
 
     # If OVA-SMOTE is requested, run the special experiment path and exit
     if getattr(args, 'ova_smote', False):
-        return ova_smote.run_ova_smote_experiments(args, device)
+        _avg = ova_smote.run_ova_smote_experiments(args, device)
+        try:
+            # Standardized line for external parsers
+            if isinstance(_avg, (int, float)):
+                print(f"OVA_AVG_ACCURACY={_avg:.6f}")
+            else:
+                print("OVA_AVG_ACCURACY=")
+        except Exception:
+            pass
+        return _avg
 
     # --- Data Loading ---
     data, feat_dim, num_classes = data_loader.load_dataset(name=args.dataset, root="simple_data")

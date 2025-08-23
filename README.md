@@ -68,12 +68,18 @@ Notes:
 ## Parameter-Scaling OVA Experiments (CSV Output)
 Generate seven variants per model by scaling trainable parameter counts from ~10M to ~100M, run OVA-SMOTE accuracy for each dataset/model variant, and save results to CSV.
 
-Usage:
+Usage (Python skeleton delegates heavy work to .sh/.bat):
 ```bash
-python run_param_scaling_ova.py --epochs 5 --output-csv results_param_scaling.csv \
+# From the project root
+python experiments/run_param_scaling_ova.py --epochs 5 --output-csv results/param_scaling_ova_results.csv \
   --datasets OGB-Arxiv Reddit TGB-Wiki MOOC \
   --models BaselineGCN GraphSAGE GAT TGAT AGNNet
 ```
+Internally, the Python script computes model variants and then calls:
+- experiments/run_param_scaling_ova.sh on Unix-like systems, or
+- experiments/run_param_scaling_ova.bat on Windows,
+passing the selected hyperparameters per run. The backend CLI prints a standardized line like `OVA_AVG_ACCURACY=0.873421` which the skeleton parses to write the CSV.
+
 Notes:
 - The CSV will contain: dataset, model, param_count, average_ova_accuracy (validation average).
 - TGN is skipped here because its parameter count is dominated by node-dependent memory state, making counts incomparable.

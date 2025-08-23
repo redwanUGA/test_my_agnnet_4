@@ -2,6 +2,8 @@ import argparse
 import csv
 import os
 import sys
+import subprocess
+import re
 from types import SimpleNamespace
 from typing import Dict, List, Tuple
 
@@ -15,7 +17,6 @@ import torch
 
 from backend import data_loader
 from backend import models
-from backend import ova_smote
 
 
 SUPPORTED_MODELS = [
@@ -197,7 +198,7 @@ def build_args_for_run(model_name: str, dataset: str, epochs: int, cfg: Dict) ->
 
 def main():
     parser = argparse.ArgumentParser(description="Run param-scaling OVA experiments and write CSV results.")
-    parser.add_argument("--output-csv", default="param_scaling_ova_results.csv", help="Output CSV path")
+    parser.add_argument("--output-csv", default=os.path.join("results", "param_scaling_ova_results.csv"), help="Output CSV path")
     parser.add_argument("--epochs", type=int, default=5, help="Epochs per OVA run (per class)")
     parser.add_argument("--datasets", nargs="*", default=SUPPORTED_DATASETS, help="Datasets to include")
     parser.add_argument("--models", nargs="*", default=SUPPORTED_MODELS, help="Models to include (TGN excluded)")
@@ -241,11 +242,41 @@ def main():
             for idx, (cfg, param_count) in enumerate(variants, start=1):
                 print(f"\n--- Running OVA {model_name} v{idx} on {dataset} | params≈{param_count:,} ---")
                 run_args = build_args_for_run(model_name, dataset, epochs=args.epochs, cfg=cfg)
-                try:
-                    avg_val = ova_smote.run_ova_smote_experiments(run_args, device)
-                except Exception as e:
-                    print(f"[ERROR] OVA run failed for {model_name} v{idx} on {dataset}: {e}")
+                # Delegate actual training/eval to platform-specific scripts (.bat/.sh)
+                script_base = os.path.join(_CURRENT_DIR, "run_param_scaling_ova")
+                is_windows = os.name == "nt"
+                script_path = script_base + (".bat" if is_windows else ".sh")
+                if not os.path.exists(script_path):
+                    print(f"[ERROR] Missing script: {script_path}")
                     avg_val = None
+                else:
+                    cmd = []
+                    if is_windows:
+                        cmd = [script_path,
+                               model_name,
+                               dataset,
+                               str(args.epochs),
+                               str(run_args.hidden_channels),
+                               str(run_args.num_layers),
+                               str(run_args.heads)]
+                    else:
+                        cmd = ["bash", script_path,
+                               model_name,
+                               dataset,
+                               str(args.epochs),
+                               str(run_args.hidden_channels),
+                               str(run_args.num_layers),
+                               str(run_args.heads)]
+                    try:
+                        completed = subprocess.run(cmd, capture_output=True, text=True, cwd=_PROJECT_ROOT)
+                        out = (completed.stdout or "") + "\n" + (completed.stderr or "")
+                        m = re.search(r"OVA_AVG_ACCURACY=([0-9]*\.?[0-9]+)", out)
+                        avg_val = float(m.group(1)) if m else None
+                        if completed.returncode != 0:
+                            print(f"[ERROR] Script failed (code {completed.returncode}) for {model_name} v{idx} on {dataset}\n--- OUTPUT ---\n{out}\n--- END OUTPUT ---")
+                    except Exception as e:
+                        print(f"[ERROR] Failed to run script for {model_name} v{idx} on {dataset}: {e}")
+                        avg_val = None
 
                 with open(csv_path, "a", newline="") as f:
                     writer = csv.writer(f)

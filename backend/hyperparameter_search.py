@@ -182,6 +182,13 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
     keys = list(space.keys())
     combos = list(itertools.product(*[space[k] for k in keys]))
 
+    # Allow disabling HPO for AGNNet on OGB-Arxiv to avoid OOM; use sane defaults
+    if model_name.lower() == "agnnet" and dataset == "OGB-Arxiv" and os.environ.get("AGN_ENABLE_HPO", "0") != "1":
+        print("[HPO Disabled] Using default parameters for AGNNet on OGB-Arxiv. Set AGN_ENABLE_HPO=1 to enable search.")
+        default_overrides = {"tau": 0.9, "k": 2}
+        default_combo = tuple(default_overrides.get(k, space[k][0]) for k in keys)
+        combos = [default_combo]
+
     # AGNNet-specific speed caps: limit trials and optionally epochs
     agn_fast = model_name.lower() == "agnnet"
     if agn_fast:

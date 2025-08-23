@@ -59,5 +59,7 @@ class SimpleNeighborLoader:
                 else:
                     sub_mask = torch.zeros_like(n_id, dtype=torch.bool)
                 setattr(batch, mask_name, sub_mask)
+            # Indicate how many seed nodes the loss should supervise
+            batch.batch_size = len(batch_nodes)
             batch.n_id = n_id
             yield batch

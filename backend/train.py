@@ -7,6 +7,8 @@ from tqdm import tqdm
 from models import AGNNet, TGN
 AGN_TYPES = (AGNNet,)
 from data_loader import partition_graph
+# Fallback CPU sampler if NeighborLoader is unavailable or OOM
+from simple_sampler import SimpleNeighborLoader
 
 
 def train_epoch_full(model, data, optimizer, args):
@@ -300,6 +302,12 @@ def run_training_session(
     partition_enabled = False
     chosen_parts = None
 
+    # Sampled fallback state (constructed on demand if OOM persists)
+    sampled_fallback_active = False
+    sf_train_loader = None
+    sf_val_loader = None
+    sf_test_loader = None
+
     for epoch in range(1, args.epochs + 1):
         print(f"\n--- Epoch {epoch}/{args.epochs} ---")
         # allow AGNNet to anneal k over epochs
@@ -316,9 +324,11 @@ def run_training_session(
                     pass
             model.set_epoch(epoch, total_epochs=args.epochs)
 
-        if is_sampled:
-            loss = train_epoch_sampled(model, train_loader, optimizer, args)
-            _, val_acc, _ = evaluate_sampled(model, val_loader)
+        if is_sampled or sampled_fallback_active:
+            tl = train_loader if is_sampled else sf_train_loader
+            vl = val_loader if is_sampled else sf_val_loader
+            loss = train_epoch_sampled(model, tl, optimizer, args)
+            _, val_acc, _ = evaluate_sampled(model, vl)
             test_acc = -1
         else:
             try:
@@ -356,7 +366,105 @@ def run_training_session(
                             torch.cuda.empty_cache()
                         continue
                 if not success:
-                    raise RuntimeError("Failed to recover from CUDA OOM even after partitioning")
+                    print("XX Still OOM after trying partitions. Switching to sampled mini-batch fallback...")
+                    # Build sampled loaders (NeighborLoader if available; else SimpleNeighborLoader)
+                    # Build on CPU to minimize GPU memory pressure
+                    data_cpu = data.cpu()
+                    num_layers = int(getattr(args, 'num_layers', 2))
+                    built = False
+                    sf_train_loader = None
+                    sf_val_loader = None
+                    sf_test_loader = None
+                    # Try torch_geometric NeighborLoader first
+                    try:
+                        from torch_geometric.loader import NeighborLoader as _NeighborLoader
+                        # GPU-aware attempts based on available memory
+                        free_gb = None
+                        if torch.cuda.is_available():
+                            try:
+                                free_bytes = torch.cuda.mem_get_info()[0]
+                                free_gb = free_bytes / (1024**3)
+                            except Exception:
+                                free_gb = None
+                        if free_gb is not None and free_gb < 2.0:
+                            neighbor_sizes = [5] * num_layers
+                            batch_size = 128
+                        elif free_gb is not None and free_gb < 4.0:
+                            neighbor_sizes = [10] * num_layers
+                            batch_size = 256
+                        else:
+                            neighbor_sizes = [15] * num_layers
+                            batch_size = 512
+                        attempts = [
+                            (neighbor_sizes, batch_size),
+                            ([10] * num_layers, 256),
+                            ([5] * num_layers, 128),
+                            ([3] * num_layers, 64),
+                            ([2] * num_layers, 32),
+                        ]
+                        num_workers = 0 if os.name == 'nt' else 4
+                        pin_memory = torch.cuda.is_available()
+                        last_err = None
+                        for ns, bs in attempts:
+                            try:
+                                sf_train_loader = _NeighborLoader(
+                                    data_cpu,
+                                    num_neighbors=ns,
+                                    batch_size=bs,
+                                    input_nodes=data_cpu.train_mask,
+                                    shuffle=True,
+                                    num_workers=num_workers,
+                                    pin_memory=pin_memory,
+                                    persistent_workers=(num_workers > 0),
+                                )
+                                sf_val_loader = _NeighborLoader(
+                                    data_cpu,
+                                    num_neighbors=ns,
+                                    batch_size=bs,
+                                    input_nodes=data_cpu.val_mask,
+                                    num_workers=num_workers,
+                                    pin_memory=pin_memory,
+                                    persistent_workers=(num_workers > 0),
+                                )
+                                sf_test_loader = _NeighborLoader(
+                                    data_cpu,
+                                    num_neighbors=ns,
+                                    batch_size=bs,
+                                    input_nodes=data_cpu.test_mask,
+                                    num_workers=num_workers,
+                                    pin_memory=pin_memory,
+                                    persistent_workers=(num_workers > 0),
+                                )
+                                built = True
+                                last_err = None
+                                print(f"--> Sampled fallback using NeighborLoader with ns={ns}, bs={bs}")
+                                break
+                            except torch.cuda.OutOfMemoryError as e3:
+                                last_err = e3
+                                print("XX OOM during NeighborLoader construction; trying smaller config...")
+                                if torch.cuda.is_available():
+                                    torch.cuda.empty_cache()
+                                continue
+                        if not built and last_err is not None:
+                            raise last_err
+                    except Exception as e_imp:
+                        print(f"NeighborLoader unavailable or failed ({e_imp}). Falling back to SimpleNeighborLoader (CPU).")
+                        built = False
+                    # If NeighborLoader could not be built, use SimpleNeighborLoader
+                    if not built:
+                        ns = [5] * num_layers
+                        bs = 256
+                        sf_train_loader = SimpleNeighborLoader(data_cpu, num_neighbors=ns, batch_size=bs, input_nodes=data_cpu.train_mask, shuffle=True)
+                        sf_val_loader = SimpleNeighborLoader(data_cpu, num_neighbors=ns, batch_size=bs, input_nodes=data_cpu.val_mask, shuffle=False)
+                        sf_test_loader = SimpleNeighborLoader(data_cpu, num_neighbors=ns, batch_size=bs, input_nodes=data_cpu.test_mask, shuffle=False)
+                        print(f"--> Sampled fallback using SimpleNeighborLoader with ns={ns}, bs={bs}")
+                    sampled_fallback_active = True
+                    # Also mark session as sampled for logging/metrics
+                    is_sampled = True
+                    # Run current epoch using sampled training
+                    loss = train_epoch_sampled(model, sf_train_loader, optimizer, args)
+                    _, val_acc, _ = evaluate_sampled(model, sf_val_loader)
+                    test_acc = -1
 
         if scheduler is not None:
             scheduler.step()

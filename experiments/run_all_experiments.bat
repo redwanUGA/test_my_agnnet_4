@@ -34,7 +34,7 @@ if not exist "%SAVE_DIR%" mkdir "%SAVE_DIR%"
 REM -----------------------
 REM 3) Run hyperparameter search (if needed) and training
 REM -----------------------
-for %%D in (OGB-Arxiv Reddit TGB-Wiki MOOC) do (
+for %%D in (OGB-Arxiv TGB-Wiki MOOC Reddit) do (
   for %%M in (BaselineGCN GraphSAGE GAT TGAT TGN AGNNet) do (
     if not exist "%SAVE_DIR%\%%M_%%D.pt" (
       set NEED_SEARCH=1

@@ -236,8 +236,13 @@ def main():
             neighbor_sizes = [15] * args.num_layers
             batch_size = 512
             args.accum_steps = 2  # accumulate gradients to mimic a larger batch
-            num_workers = 0 if os.name == 'nt' else 4
-            pin_memory = torch.cuda.is_available()
+            # Reddit-specific conservative settings to avoid worker-shutdown assertions and OOM
+            if args.dataset == "Reddit":
+                num_workers = 0
+                pin_memory = False
+            else:
+                num_workers = 0 if os.name == 'nt' else 4
+                pin_memory = torch.cuda.is_available()
 
             def build_neighbor_loaders(ns, bs):
                 tl = NeighborLoader(
@@ -462,9 +467,9 @@ def main():
             neighbor_sizes = [15] * args.num_layers
             batch_size = 512
             args.accum_steps = 2
-            # Build NeighborLoaders with GPU-aware settings
-            num_workers = 0 if os.name == 'nt' else 4
-            pin_memory = torch.cuda.is_available()
+            # Build NeighborLoaders with conservative single-process settings for Reddit
+            num_workers = 0
+            pin_memory = False
             def build_part_neighbor_loaders(ns, bs):
                 tl = NeighborLoader(
                     part_data,

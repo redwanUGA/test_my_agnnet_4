@@ -1,151 +1,272 @@
 # Graph Neural Network Experiments
 
-This repository contains a small collection of scripts for experimenting with various graph neural network (GNN) architectures. The code supports loading several datasets and running pre-configured training sessions.
+This repository contains a small, reproducible suite for experimenting with several graph neural network (GNN) architectures across multiple datasets. It provides:
+- A unified CLI to run any model/dataset pair;
+- Utilities for loading large preprocessed datasets;
+- End-to-end scripts for all-experiments, OVA-SMOTE benchmarking, AGNNet ablations, and parameter-scaling sweeps.
 
-## Contents
-- `data_loader.py` – Utilities for downloading and loading graph datasets. Supports **OGB-Arxiv**, **Reddit**, **TGB-Wiki**, and **MOOC**.
-- `models.py` – Implementation of baseline GCN and GraphSAGE models along with research prototypes such as `AGNNet`.
-- `train.py` – Reusable routines for full-batch and sampled mini-batch training.
-- `main.py` – Command line interface to run a single experiment.
-- `DOWNLOAD_INSTRUCTIONS.md` – Steps for obtaining large datasets from the provided Google Drive folder.
 
 ## Getting Started
-1. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-  Note: Some PyTorch Geometric extensions (e.g., torch-scatter, torch-sparse) may require CUDA-specific wheels. If needed, install them separately to match your Torch/CUDA version. When these extensions are missing, a slower fallback loader implemented in pure Python may be used.
-2. Download the datasets from the provided Google Drive folder by following [DOWNLOAD_INSTRUCTIONS.md](DOWNLOAD_INSTRUCTIONS.md).
-   The archives will create a `simple_data/` directory containing `.pt` files.
-3. Run an experiment:
-   ```bash
-   python main.py --model BaselineGCN --dataset OGB-Arxiv --epochs 20
-   ```
-   Additional hyperparameters such as learning rate, dropout and hidden size can
-   be supplied via command line flags (see `python main.py --help`). Defaults
-   for these optional values are printed as part of the configuration output.
-
-4. Run all predefined experiments locally and capture logs:
+1) Create environment and install dependencies
+- Unix/macOS:
   ```bash
-  bash run_all_experiments.sh
+  python -m venv .venv && source .venv/bin/activate
+  pip install -r requirements.txt
   ```
-  Or on Windows PowerShell/CMD:
+- Windows (PowerShell):
+  ```powershell
+  py -m venv .venv; .\.venv\Scripts\Activate.ps1
+  pip install -r requirements.txt
+  ```
+Note: Some PyTorch Geometric (PyG) extensions (e.g., torch-scatter, torch-sparse) may require CUDA-specific wheels. If needed, install wheels matching your Torch/CUDA version. When these extensions are missing, the code falls back to a pure-Python sampler (slower but functional).
+
+2) Download datasets
+- Follow [DOWNLOAD_INSTRUCTIONS.md](DOWNLOAD_INSTRUCTIONS.md). The download creates a `simple_data/` directory with `.pt` files the loaders expect.
+
+3) Quick sanity run (from project root)
+- Bash:
+  ```bash
+  python backend/main.py --model BaselineGCN --dataset OGB-Arxiv --epochs 5
+  ```
+- Windows (PowerShell/CMD):
   ```bat
-  run_all_experiments.bat
+  python backend\main.py --model BaselineGCN --dataset OGB-Arxiv --epochs 5
   ```
-  These scripts now run everything locally. No remote connections (SSH/SCP) are used.
 
-  After completion, logs/ and saved_models/ will be present in your working directory.
 
-  Output is streamed to the console and a timestamped log is written to the
-  `logs/` directory.
+## What’s Inside (1‑line map of folders and files)
+- README.md – This guide with how-tos and commands.
+- DOWNLOAD_INSTRUCTIONS.md – How to obtain the preprocessed datasets.
+- requirements.txt – Python dependencies (PyTorch, PyG, gdown, etc.).
+- simple_data\ – Folder created after dataset download; contains .pt files (not in repo).
+- results\ – Output artifacts (logs, CSVs, saved models) created by scripts.
+  - results\logs\ – Timestamped logs captured by batch/shell scripts.
 
-### Valid command line values
-Models:
-`BaselineGCN`, `GraphSAGE`, `TGAT`, `TGN`, `AGNNet`
+Backend (training code and utilities)
+- backend\main.py – Single-run CLI entry point (choose model/dataset/epochs, etc.).
+- backend\models.py – All model definitions: BaselineGCN, GraphSAGE, GAT, TGAT, TGN, AGNNet.
+- backend\models_agn_net_only.py – Deprecated shim re-exporting AGNNet from models.py.
+- backend\data_loader.py – Load `.pt` datasets; optional SMOTE; fallback partitioning.
+- backend\train.py – Training/eval loops for full-batch and sampled NeighborLoader; schedulers.
+- backend\ova_smote.py – One-vs-All with per-class SMOTE; reports averaged accuracy.
+- backend\hyperparameter_search.py – Local hyperparameter search with caching of best config.
+- backend\simple_sampler.py – Pure-CPU NeighborLoader fallback when PyG extensions are missing.
+- backend\count_saved_model_params.py – Count parameters in saved `.pt` checkpoints (optionally verbose).
+- backend\verify_mooc_models.py – Small MOOC-only smoke test to verify model forward/training.
+- backend\verify_tgn_shape.py – TGN forward-shape check on both subgraph and full-graph paths.
 
-Datasets:
-`OGB-Arxiv`, `Reddit`, `TGB-Wiki`, `MOOC`
+Experiments (ready-to-run scripts)
+- experiments\run_all_experiments.bat/.sh – Run HP search (if needed) then train all models on all datasets.
+- experiments\run_all_experiments_agn_only.bat/.sh – Run only AGNNet with small sweeps and an ablation.
+- experiments\run_ova_experiments.bat/.sh – Run OVA-SMOTE average-accuracy across models/datasets.
+- experiments\run_ablation_agnnet.bat/.sh – Reproducible AGNNet ablation suite.
+- experiments\run_param_scaling_ova.py – Orchestrates parameter-scaling OVA runs and writes a CSV.
+- experiments\run_param_scaling_ova.bat/.sh – Low-level runners invoked by the Python driver.
 
-Default hyperparameters:
-- `lr`: `0.01`
-- `hidden-channels`: `64`
-- `dropout`: `0.5`
-- `weight-decay`: `5e-4`
-- `num-layers`: `2`
 
-## One-vs-All SMOTE Average Accuracy
-You can run experiments that compute the average accuracy over n binary one-vs-all classifiers (n = number of classes). For each class, the training nodes are oversampled using SMOTE in a binary setting, a binary (2-class) model is trained, and the per-class validation/test accuracy is recorded and averaged.
+## Supported models and datasets
+- Models: BaselineGCN, GraphSAGE, GAT, TGAT, TGN, AGNNet
+- Datasets: OGB-Arxiv, Reddit, TGB-Wiki, MOOC
 
-Example:
-```bash
-python main.py --model BaselineGCN --dataset OGB-Arxiv --epochs 20 --ova-smote
-```
+Key CLI flags (see `--help` for all):
+- `--epochs` (int, required), `--lr` (0.01), `--hidden-channels` (64), `--dropout` (0.5), `--weight-decay` (5e-4), `--num-layers` (2)
+- SAGE: `--aggr` (mean)
+- GAT/TGAT: `--heads` (2), TGAT: `--time-dim` (32)
+- TGN: `--mem` (100), `--encoder` (64)
+- AGNNet: `--tau` (0.9), `--k` (8), `--k-anneal`, `--k-min` (2), `--k-max` (defaults to k), `--ffn-expansion` (2.0), `--soft-topk`, `--edge-threshold` (0.0), `--disable-pred-subgraph`, `--no-self-loops`
+- Experiment mode: `--ova-smote` (One‑vs‑All with per-class SMOTE)
+
+
+## How to run any architecture on any dataset from the command line
+All commands are from the project root.
+
+Template
+- Bash:
+  ```bash
+  python backend/main.py --model <MODEL> --dataset <DATASET> --epochs <E>
+  ```
+- Windows (PowerShell/CMD):
+  ```bat
+  python backend\main.py --model <MODEL> --dataset <DATASET> --epochs <E>
+  ```
+
+Examples per architecture and dataset (Bash)
+- BaselineGCN
+  - `python backend/main.py --model BaselineGCN --dataset OGB-Arxiv --epochs 20`
+  - `python backend/main.py --model BaselineGCN --dataset Reddit --epochs 20`
+  - `python backend/main.py --model BaselineGCN --dataset TGB-Wiki --epochs 20`
+  - `python backend/main.py --model BaselineGCN --dataset MOOC --epochs 20`
+- GraphSAGE
+  - `python backend/main.py --model GraphSAGE --dataset OGB-Arxiv --epochs 20`
+  - `python backend/main.py --model GraphSAGE --dataset Reddit --epochs 20`
+  - `python backend/main.py --model GraphSAGE --dataset TGB-Wiki --epochs 20`
+  - `python backend/main.py --model GraphSAGE --dataset MOOC --epochs 20`
+- GAT
+  - `python backend/main.py --model GAT --dataset OGB-Arxiv --epochs 20`
+  - `python backend/main.py --model GAT --dataset Reddit --epochs 20`
+  - `python backend/main.py --model GAT --dataset TGB-Wiki --epochs 20`
+  - `python backend/main.py --model GAT --dataset MOOC --epochs 20`
+- TGAT
+  - `python backend/main.py --model TGAT --dataset OGB-Arxiv --epochs 20`
+  - `python backend/main.py --model TGAT --dataset Reddit --epochs 20`
+  - `python backend/main.py --model TGAT --dataset TGB-Wiki --epochs 20`
+  - `python backend/main.py --model TGAT --dataset MOOC --epochs 20`
+- TGN
+  - `python backend/main.py --model TGN --dataset OGB-Arxiv --epochs 20`
+  - `python backend/main.py --model TGN --dataset Reddit --epochs 20`
+  - `python backend/main.py --model TGN --dataset TGB-Wiki --epochs 20`
+  - `python backend/main.py --model TGN --dataset MOOC --epochs 20`
+- AGNNet
+  - `python backend/main.py --model AGNNet --dataset OGB-Arxiv --epochs 20`
+  - `python backend/main.py --model AGNNet --dataset Reddit --epochs 20`
+  - `python backend/main.py --model AGNNet --dataset TGB-Wiki --epochs 20`
+  - `python backend/main.py --model AGNNet --dataset MOOC --epochs 20`
+
+Examples per architecture and dataset (Windows)
+- BaselineGCN
+  - `python backend\main.py --model BaselineGCN --dataset OGB-Arxiv --epochs 20`
+  - `python backend\main.py --model BaselineGCN --dataset Reddit --epochs 20`
+  - `python backend\main.py --model BaselineGCN --dataset TGB-Wiki --epochs 20`
+  - `python backend\main.py --model BaselineGCN --dataset MOOC --epochs 20`
+- GraphSAGE
+  - `python backend\main.py --model GraphSAGE --dataset OGB-Arxiv --epochs 20`
+  - `python backend\main.py --model GraphSAGE --dataset Reddit --epochs 20`
+  - `python backend\main.py --model GraphSAGE --dataset TGB-Wiki --epochs 20`
+  - `python backend\main.py --model GraphSAGE --dataset MOOC --epochs 20`
+- GAT
+  - `python backend\main.py --model GAT --dataset OGB-Arxiv --epochs 20`
+  - `python backend\main.py --model GAT --dataset Reddit --epochs 20`
+  - `python backend\main.py --model GAT --dataset TGB-Wiki --epochs 20`
+  - `python backend\main.py --model GAT --dataset MOOC --epochs 20`
+- TGAT
+  - `python backend\main.py --model TGAT --dataset OGB-Arxiv --epochs 20`
+  - `python backend\main.py --model TGAT --dataset Reddit --epochs 20`
+  - `python backend\main.py --model TGAT --dataset TGB-Wiki --epochs 20`
+  - `python backend\main.py --model TGAT --dataset MOOC --epochs 20`
+- TGN
+  - `python backend\main.py --model TGN --dataset OGB-Arxiv --epochs 20`
+  - `python backend\main.py --model TGN --dataset Reddit --epochs 20`
+  - `python backend\main.py --model TGN --dataset TGB-Wiki --epochs 20`
+  - `python backend\main.py --model TGN --dataset MOOC --epochs 20`
+- AGNNet
+  - `python backend\main.py --model AGNNet --dataset OGB-Arxiv --epochs 20`
+  - `python backend\main.py --model AGNNet --dataset Reddit --epochs 20`
+  - `python backend\main.py --model AGNNet --dataset TGB-Wiki --epochs 20`
+  - `python backend\main.py --model AGNNet --dataset MOOC --epochs 20`
+
+Tip: You can add hyperparameters to any command, e.g., `--hidden-channels 128 --num-layers 3 --dropout 0.25`.
+
+
+## One‑vs‑All (OVA) with SMOTE
+The OVA path trains a binary classifier per class (with SMOTE oversampling on the train nodes) and prints the averaged accuracy.
+
+- Bash:
+  ```bash
+  python backend/main.py --model BaselineGCN --dataset OGB-Arxiv --epochs 20 --ova-smote
+  ```
+- Windows:
+  ```bat
+  python backend\main.py --model BaselineGCN --dataset OGB-Arxiv --epochs 20 --ova-smote
+  ```
 Notes:
-- For sampled datasets like Reddit, only validation accuracy is averaged (test accuracy is not computed in the sampled path, consistent with the existing pipeline).
-- For TGN or very large graphs the per-class SMOTE step is skipped to avoid memory blow-ups.
-
-## Parameter-Scaling OVA Experiments (CSV Output)
-Generate seven variants per model by scaling trainable parameter counts from ~10M to ~100M, run OVA-SMOTE accuracy for each dataset/model variant, and save results to a CSV file.
-
-Important: Only the Python driver writes the CSV. Do not call the .sh/.bat directly if you want the CSV to be generated.
-
-Quick example (single dataset/model to sanity-check CSV generation):
-```bash
-# From the project root
-python experiments/run_param_scaling_ova.py --epochs 3 --output-csv results/param_scaling_ova_results.csv \
-  --datasets OGB-Arxiv \
-  --models BaselineGCN
-```
-Full run across all supported datasets/models:
-- On Unix-like systems (bash):
-```bash
-python experiments/run_param_scaling_ova.py --epochs 5 --output-csv results/param_scaling_ova_results.csv \
-  --datasets OGB-Arxiv Reddit TGB-Wiki MOOC \
-  --models BaselineGCN GraphSAGE GAT TGAT AGNNet
-```
-- On Windows (PowerShell/CMD):
-```bat
-python experiments\run_param_scaling_ova.py --epochs 5 --output-csv results\param_scaling_ova_results.csv ^
-  --datasets OGB-Arxiv Reddit TGB-Wiki MOOC ^
-  --models BaselineGCN GraphSAGE GAT TGAT AGNNet
-```
-What happens under the hood:
-- The Python driver precomputes parameter-scaled variants, then calls:
-  - experiments/run_param_scaling_ova.sh on Unix-like systems, or
-  - experiments/run_param_scaling_ova.bat on Windows.
-- backend/main.py prints a standardized line like `OVA_AVG_ACCURACY=0.873421`, which the driver parses and appends to the CSV.
-
-Notes and tips:
-- Ensure datasets are downloaded to `simple_data/` (see DOWNLOAD_INSTRUCTIONS.md) before running; otherwise, runs will be skipped.
-- The CSV columns are: dataset, model, param_count, average_ova_accuracy (validation average).
-- TGN is intentionally excluded from this scaling sweep because its parameter count is dominated by node-dependent memory state.
-- You can adjust `--epochs` to trade off runtime vs accuracy. The script searches simple grids over hidden size and number of layers to approximate target parameter counts.
-
-## Ablation Study: AGNNet
-This repo includes a ready-to-run, reproducible ablation study for AGNNet that isolates the contribution of its main components. The ablation compares a baseline AGNNet configuration against targeted removals/toggles across all supported datasets.
-
-Key components under study:
-- Predictive subgraph selection (enable/disable with `--disable-pred-subgraph`).
-- k-annealing over epochs (enable with `--k-anneal` vs fixed k).
-- Soft top-k attention cap (toggle `--soft-topk`).
-- Forced self-loops for stability (`--no-self-loops` to ablate).
-- Edge thresholding in attention pre-filtering (`--edge-threshold`).
-
-Baseline configuration used by the scripts:
-- Hidden size: 128, Layers: 3, Dropout: 0.25
-- Optimizer: AdamW (lr=0.003, weight_decay=5e-4)
-- LR schedule: cosine with warmup=500 epochs
-- Label smoothing: 0.05
-- AGN params: tau=0.9, k=8, k-anneal enabled (k-min=2, k-max=8), soft-topk enabled, edge-threshold=0.0
-
-Ablation variants run:
-1) Baseline (all components enabled)
-2) No predictive subgraph selection (`--disable-pred-subgraph`)
-3) No k-annealing (fixed k)
-4) No soft top-k (hard cap only)
-5) No self-loops (`--no-self-loops`)
-6) No edge threshold (explicitly set `--edge-threshold 0.0`)
-
-How to run (Windows PowerShell/CMD):
-```bat
-run_ablation_agnnet.bat
-```
-On Unix-like systems:
-```bash
-bash run_ablation_agnnet.sh
-```
-
-Notes:
-- Both scripts run the ablations for: OGB-Arxiv, Reddit, TGB-Wiki, MOOC.
-- Logs are saved under `logs/` with a timestamped filename. Console output includes epoch-wise metrics and selected configuration for each run.
-- You can override the number of epochs by setting `EPOCHS` in your environment, e.g., `set EPOCHS=20` on Windows or `export EPOCHS=20` on Unix.
-- The scripts will attempt to download datasets to `simple_data/` if not found (using the same Google Drive folder referenced by DOWNLOAD_INSTRUCTIONS.md).
+- For Reddit (sampled training), the averaged validation accuracy is reported; test average may be skipped.
+- For TGN or very large graphs, SMOTE is skipped to avoid memory blow-ups.
 
 
-## Notes
-- The datasets are large and therefore not stored in this repository.
-- After downloading they reside in `simple_data/` and are loaded directly
-  from those `.pt` files.
-- Use the command line flags in `main.py` to adjust hyperparameters or integrate new models.
+## Run all predefined experiments
+- Bash:
+  ```bash
+  bash experiments/run_all_experiments.sh
+  ```
+- Windows (PowerShell/CMD):
+  ```bat
+  experiments\run_all_experiments.bat
+  ```
+Behavior:
+- Ensures datasets exist; runs hyperparameter search if a model/dataset pair lacks a cached config; then trains.
+- Saves logs under `results/logs/` (bash) or similar transcript; Windows batch also records to `results\logs` from its working dir.
+- Saves best checkpoints and configs under `results/saved_models/`.
 
+
+## AGNNet ablation study
+- Bash: `bash experiments/run_ablation_agnnet.sh`
+- Windows: `experiments\run_ablation_agnnet.bat`
+What it runs:
+- Baseline AGNNet run, then 5 ablations toggling predictive-subgraph, k-anneal, soft-topk, self-loops, edge-threshold across all datasets.
+Override epochs: `export EPOCHS=20` (bash) or `set EPOCHS=20` (Windows).
+
+
+## Parameter‑scaling OVA sweep (CSV output)
+Use the Python driver (it writes the CSV) and let it call the OS-specific runners.
+
+- Quick sanity (one dataset/model):
+  - Bash:
+    ```bash
+    python experiments/run_param_scaling_ova.py --epochs 3 --output-csv results/param_scaling_ova_results.csv \
+      --datasets OGB-Arxiv \
+      --models BaselineGCN
+    ```
+  - Windows:
+    ```bat
+    python experiments\run_param_scaling_ova.py --epochs 3 --output-csv results\param_scaling_ova_results.csv ^
+      --datasets OGB-Arxiv ^
+      --models BaselineGCN
+    ```
+- Full sweep (all datasets/models except TGN in scaling logic):
+  - Bash:
+    ```bash
+    python experiments/run_param_scaling_ova.py --epochs 5 --output-csv results/param_scaling_ova_results.csv \
+      --datasets OGB-Arxiv Reddit TGB-Wiki MOOC \
+      --models BaselineGCN GraphSAGE GAT TGAT AGNNet
+    ```
+  - Windows:
+    ```bat
+    python experiments\run_param_scaling_ova.py --epochs 5 --output-csv results\param_scaling_ova_results.csv ^
+      --datasets OGB-Arxiv Reddit TGB-Wiki MOOC ^
+      --models BaselineGCN GraphSAGE GAT TGAT AGNNet
+    ```
+Output:
+- CSV columns: `dataset, model, param_count, average_ova_accuracy` (validation average).
+- Logs written under `results/logs/`.
+
+
+## OVA across all models/datasets (quick driver)
+- Bash: `bash experiments/run_ova_experiments.sh`
+- Windows: `experiments\run_ova_experiments.bat`
+
+
+## Hyperparameter search (ad-hoc)
+To run a small local search for a specific model/dataset (caches best config and checkpoint under `results/saved_models/`):
+
+- Bash:
+  ```bash
+  python backend/hyperparameter_search.py --model GraphSAGE --dataset OGB-Arxiv --epochs 20 --save-dir results/saved_models
+  ```
+- Windows:
+  ```bat
+  python backend\hyperparameter_search.py --model GraphSAGE --dataset OGB-Arxiv --epochs 20 --save-dir results\saved_models
+  ```
+
+
+## Outputs and logs
+- Checkpoints/configs: `results/saved_models/` (created automatically by the runners).
+- Logs: typically under `results/logs/` (shell) or `logs/` (some .bat scripts). Search both if unsure.
+- CSVs: placed in `results/` (e.g., `param_scaling_ova_results.csv`).
+
+
+## Troubleshooting
+- Missing PyG extensions: The code will fall back to `backend/simple_sampler.py`, which is slower; consider installing proper wheels if you see very slow sampled runs.
+- CUDA memory: For very large graphs or TGN, SMOTE and/or full-batch training may be skipped; use the sampled path or reduce hidden size/layers.
+- Dataset path: Ensure `simple_data/` exists at the project root with the expected `.pt` files.
+
+
+## Contributing / Extending
+- Add a new model in `backend/models.py` and wire it in `backend/main.py` CLI choices.
+- Add new datasets by extending `backend/data_loader.py` to return `(data, feat_dim, num_classes)`.
+- Use `backend/count_saved_model_params.py --dir results/saved_models` to audit parameter counts of saved checkpoints.
+
+
+
+
+## Non-admin CUDA setup (no system CUDA required)
+If you need a GPU-enabled setup without installing a system-wide CUDA toolkit or admin rights, follow the step-by-step guide in [CUDA_non_admin_fix.md](CUDA_non_admin_fix.md). It installs PyTorch 2.4.0 with bundled CUDA 12.1 and matching PyG wheels.

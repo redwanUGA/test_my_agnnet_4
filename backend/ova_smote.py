@@ -76,13 +76,14 @@ def run_ova_smote_experiments(args, device):
                 model = model.to(device)
 
                 # NeighborLoaders over this partition
-                num_workers = 0 if os.name == 'nt' else 4
-                pin_memory = torch.cuda.is_available()
+                # Use conservative single-process settings on Reddit to avoid shutdown assertions and OOM
+                num_workers = 0
+                pin_memory = False
 
                 def _build_part_loaders(ns, bs):
-                    tl = NeighborLoader(d, num_neighbors=ns, batch_size=bs, input_nodes=d.train_mask, shuffle=True, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=(num_workers > 0))
-                    vl = NeighborLoader(d, num_neighbors=ns, batch_size=bs, input_nodes=d.val_mask, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=(num_workers > 0))
-                    te = NeighborLoader(d, num_neighbors=ns, batch_size=bs, input_nodes=d.test_mask, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=(num_workers > 0))
+                    tl = NeighborLoader(d, num_neighbors=ns, batch_size=bs, input_nodes=d.train_mask, shuffle=True, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=False)
+                    vl = NeighborLoader(d, num_neighbors=ns, batch_size=bs, input_nodes=d.val_mask, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=False)
+                    te = NeighborLoader(d, num_neighbors=ns, batch_size=bs, input_nodes=d.test_mask, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=False)
                     return tl, vl, te
 
                 # GPU-aware settings
@@ -237,8 +238,9 @@ def run_ova_smote_experiments(args, device):
             neighbor_sizes = [15] * args.num_layers
             batch_size = 512
             args.accum_steps = 2
-            num_workers = 0 if os.name == 'nt' else 4
-            pin_memory = torch.cuda.is_available()
+            # Reddit conservative loader settings
+            num_workers = 0
+            pin_memory = False
 
             def build_neighbor_loaders(ns, bs):
                 tl = NeighborLoader(

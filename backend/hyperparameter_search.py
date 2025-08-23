@@ -297,13 +297,14 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
                 best_state_part = None
 
                 # GPU-aware NeighborLoader settings
-                num_workers = 0 if os.name == 'nt' else 4
-                pin_memory = torch.cuda.is_available()
+                # For Reddit, avoid multiprocessing workers to prevent shutdown assertions and reduce memory spikes.
+                num_workers = 0
+                pin_memory = False
 
                 def build_neighbor_loaders_part(ns, bs):
-                    tl = NeighborLoader(part, num_neighbors=ns, batch_size=bs, input_nodes=part.train_mask, shuffle=True, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=(num_workers > 0))
-                    vl = NeighborLoader(part, num_neighbors=ns, batch_size=bs, input_nodes=part.val_mask, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=(num_workers > 0))
-                    te = NeighborLoader(part, num_neighbors=ns, batch_size=bs, input_nodes=part.test_mask, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=(num_workers > 0))
+                    tl = NeighborLoader(part, num_neighbors=ns, batch_size=bs, input_nodes=part.train_mask, shuffle=True, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=False)
+                    vl = NeighborLoader(part, num_neighbors=ns, batch_size=bs, input_nodes=part.val_mask, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=False)
+                    te = NeighborLoader(part, num_neighbors=ns, batch_size=bs, input_nodes=part.test_mask, num_workers=num_workers, pin_memory=pin_memory, persistent_workers=False)
                     return tl, vl, te
 
                 def neighbor_attempts():
@@ -328,6 +329,8 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
                         ([5] * args.num_layers, 128),
                         ([3] * args.num_layers, 64),
                         ([2] * args.num_layers, 32),
+                        ([1] * args.num_layers, 16),
+                        ([1] * args.num_layers, 8),
                     ]
 
                 # Build NeighborLoaders once per partition and reuse across all hyperparameter combos
@@ -502,8 +505,12 @@ def run_search(model_name, dataset, epochs=2, save_dir="saved_models"):
 
                 neighbor_sizes = [15] * args.num_layers
                 batch_size = 512
-                num_workers = 0 if os.name == 'nt' else 4
-                pin_memory = torch.cuda.is_available()
+                if dataset == "Reddit":
+                    num_workers = 0
+                    pin_memory = False
+                else:
+                    num_workers = 0 if os.name == 'nt' else 4
+                    pin_memory = torch.cuda.is_available()
 
                 def build_neighbor_loaders(ns, bs, use_neighbor=True):
                     tl = NeighborLoader(

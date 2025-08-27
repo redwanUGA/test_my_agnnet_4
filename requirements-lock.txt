@@ -1,0 +1,22 @@
+# Frozen, exact versions used for camera-ready reproduction
+# Note: For CUDA-enabled installs, prefer pinned Torch/Torchvision wheels from PyTorch index
+# and PyG wheels from data.pyg.org matching both Torch and CUDA (see README Environments section).
+
+# Core
+numpy==1.26.4
+pandas==2.2.2
+tqdm==4.66.4
+scikit-learn==1.5.1
+imbalanced-learn==0.12.3
+ogb==1.3.6
+gdown==5.2.0
+
+# PyTorch (CPU default). For CUDA builds, see README matrix.
+torch==2.3.1
+# PyTorch Geometric stack pinned to Torch 2.3.1
+torch-geometric==2.5.3
+# If you plan to use NeighborLoader GPU ops, install matching wheels for these:
+# torch-scatter==2.1.2
+# torch-sparse==0.6.18
+# torch-cluster==1.6.3
+# torch-spline-conv==1.2.2

@@ -45,7 +45,7 @@ fi
 # -----------------------
 EPOCHS="${EPOCHS:-20}"  # you can override: EPOCHS=50 ./run_ova_experiments.sh
 
-models=(BaselineGCN GraphSAGE GAT TGAT TGN AGNNet)
+models=(BaselineGCN GraphSAGE GAT TGAT AGNNet)
 datasets=("OGB-Arxiv" "Reddit" "TGB-Wiki" "MOOC")
 
 # -----------------------

@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: >
+  If you use this code in your research, please cite the repository and the
+  corresponding paper using the metadata below.
+title: "AGN-Net: Adaptive Graph Neighborhoods for Efficient GNNs"
+authors:
+  - name: "AGN-Net Authors"
+    affiliation: "Your Institution"
+    orcid: "0000-0000-0000-0000"
+version: "v1.0.0-LoG-supp"
+date-released: 2025-08-27
+repository-code: "https://github.com/your-org/agn-net"
+license: "MIT"
+keywords:
+  - graph neural networks
+  - adaptive neighborhoods
+  - torch-geometric
+  - reproducibility

@@ -55,7 +55,7 @@ EPOCHS="${EPOCHS:-20}"
 SAVE_DIR="$PROJECT_ROOT/results/saved_models"
 mkdir -p "$SAVE_DIR"
 
-models=(BaselineGCN GraphSAGE GAT TGAT TGN AGNNet)
+models=(BaselineGCN GraphSAGE GAT TGAT AGNNet)
 datasets=("OGB-Arxiv" "Reddit" "TGB-Wiki" "MOOC")
 
 # -----------------------

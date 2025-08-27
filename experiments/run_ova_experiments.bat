@@ -25,7 +25,7 @@ REM 2) Experiment settings
 REM -----------------------
 if "%EPOCHS%"=="" set "EPOCHS=20"
 
-set MODELS=BaselineGCN GraphSAGE GAT TGAT TGN AGNNet
+set MODELS=BaselineGCN GraphSAGE GAT TGAT AGNNet
 set DATASETS=OGB-Arxiv Reddit TGB-Wiki MOOC
 
 REM -----------------------

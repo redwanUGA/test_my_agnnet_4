@@ -7,6 +7,21 @@ This repository contains a small, reproducible suite for experimenting with seve
 
 
 ## Getting Started
+
+### Quickstart (60s CPU smoke)
+- Bash:
+  ```bash
+  python backend/main.py --model BaselineGCN --dataset OGB-Arxiv --epochs 1 --cpu-smoke
+  ```
+- Windows (PowerShell):
+  ```powershell
+  python backend\main.py --model BaselineGCN --dataset OGB-Arxiv --epochs 1 --cpu-smoke
+  ```
+Expected output snippet (last lines):
+```
+CPU_SMOKE_OK=1 VAL_ACC=0.XXXY TEST_ACC=0.ZZZZ
+```
+This runs on a tiny synthetic graph and finishes in under a minute on CPU.
 1) Create environment and install dependencies
 - Unix/macOS:
   ```bash
@@ -310,3 +325,73 @@ To run a small local search for a specific model/dataset (caches best config and
 
 ## Non-admin CUDA setup (no system CUDA required)
 If you need a GPU-enabled setup without installing a system-wide CUDA toolkit or admin rights, follow the step-by-step guide in [CUDA_non_admin_fix.md](CUDA_non_admin_fix.md). It installs PyTorch 2.4.0 with bundled CUDA 12.1 and matching PyG wheels.
+
+
+
+## One-command reproduce
+- Windows:
+  ```bat
+  scripts\reproduce_paper.bat
+  ```
+- Unix/macOS:
+  ```bash
+  bash scripts/reproduce_paper.sh
+  ```
+This will: (a) ensure datasets exist (via gdown fallback), (b) run the predefined experiments, (c) write logs under results/logs/, and (d) generate results/summary.json with parsed metrics.
+
+## Paper artifact map
+- Table: OVA averages → experiments/run_ova_experiments.(sh|bat) or backend/main.py --ova-smote
+- Figure: AGNNet ablations → experiments/run_ablation_agnnet.(sh|bat)
+- Table: Param-scaling (OVA) → experiments/run_param_scaling_ova.py (+ .sh/.bat wrappers)
+- All models/datasets summary → experiments/run_all_experiments.(sh|bat)
+
+## Environments (tested)
+- Python: 3.10, 3.11
+- OS: Ubuntu 22.04, Windows 11
+- CPU baseline:
+  - pip install -r requirements-lock.txt
+- CUDA 11.8 (example):
+  - pip install --index-url https://download.pytorch.org/whl/cu118 torch==2.3.1
+  - pip install torch-geometric==2.5.3
+  - pip install pyg-lib torch-scatter torch-sparse torch-cluster torch-spline-conv -f https://data.pyg.org/whl/torch-2.3.0+cu118.html
+- CUDA 12.1 (example):
+  - pip install --index-url https://download.pytorch.org/whl/cu121 torch==2.3.1
+  - pip install torch-geometric==2.5.3
+  - pip install pyg-lib torch-scatter torch-sparse torch-cluster torch-spline-conv -f https://data.pyg.org/whl/torch-2.3.0+cu121.html
+Notes: If the optional PyG ops are unavailable, the code falls back to a pure-CPU sampler (slower but functional).
+
+## Known issues and tips
+- PyG wheels must match your Torch and CUDA. See the commands above for CUDA-specific wheels.
+- Determinism: Use --seed (default 42) and --deterministic to minimize nondeterminism. Some CUDA kernels may still vary slightly.
+- Large graphs: If you hit OOM, the training auto-switches to partitioned or sampled fallback.
+
+## Repository hygiene (important)
+- Keep editor/derived artifacts out of git. This repo gitignores: .idea/, results/, simple_data/, saved_models/, .venv/, OS files.
+- If your clone already has tracked results/ or .idea/, remove them from tracking once:
+  ```bash
+  git rm -r --cached results .idea
+  git commit -m "Stop tracking generated folders"
+  ```
+- We also include results/.gitkeep so the folder exists locally but is not tracked for content.
+
+## Sample logs
+We provide tiny example logs under results_sample/ to illustrate expected metric lines (e.g., CPU_SMOKE_OK=..., OVA_AVG_ACCURACY=...). Do not treat them as full experiment outcomes.
+
+
+## Paper reproduction scope
+
+- Evaluated baselines (per paper): BaselineGCN, GraphSAGE, GAT, TGAT, and AGN-Net. TGN is implemented in this repo for reference but is excluded from the default experiment scripts to match the paper’s reported scope.
+- Hyperparameter search ranges are aligned with the paper:
+  - GCN / GraphSAGE: hidden size [64, 128], lr [0.005, 0.01]; SAGE aggr in {mean, max}. TGB-Wiki includes hidden size [32, 64].
+  - GAT: hidden size [64, 128], heads {2, 4}, dropout [0.5, 0.6]; TGB-Wiki includes hidden size [32, 64].
+  - TGAT: lr 1e-3; heads {2, 4} (dataset-dependent); time_dim in [32, 64].
+  - AGN-Net: lr 1e-2; tau in [0.85, 0.95] (dataset-dependent); k in {1, 2, 3} (dataset-dependent); hidden size typically 64.
+- OVA-SMOTE and parameter-scaling experiments follow scripts in experiments/ and match the paper’s description.
+
+### Reproduce (one command)
+- Windows (PowerShell/CMD):
+  - `scripts\reproduce_paper.bat`
+- Unix/macOS:
+  - `bash scripts/reproduce_paper.sh`
+
+These scripts call the experiment runners which, by default, now exclude TGN and run the paper’s evaluated baselines plus AGN-Net. Logs and model checkpoints are written under results\.

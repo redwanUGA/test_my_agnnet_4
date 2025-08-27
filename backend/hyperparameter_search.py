@@ -22,12 +22,12 @@ def get_search_space():
             },
             "Reddit": {
                 "lr": [0.005, 0.01],
-                "hidden_channels": [64],
+                "hidden_channels": [64, 128],
                 "dropout": [0.5, 0.6],
             },
             "TGB-Wiki": {
                 "lr": [0.01],
-                "hidden_channels": [32],
+                "hidden_channels": [32, 64],
                 "dropout": [0.4, 0.6],
             },
             "MOOC": {
@@ -45,13 +45,13 @@ def get_search_space():
             },
             "Reddit": {
                 "lr": [0.005, 0.01],
-                "hidden_channels": [64],
+                "hidden_channels": [64, 128],
                 "heads": [2, 4],
-                "dropout": [0.6],
+                "dropout": [0.5, 0.6],
             },
             "TGB-Wiki": {
                 "lr": [0.01],
-                "hidden_channels": [32],
+                "hidden_channels": [32, 64],
                 "heads": [2, 4],
                 "dropout": [0.5, 0.6],
             },
@@ -70,13 +70,13 @@ def get_search_space():
             },
             "Reddit": {
                 "lr": [0.005, 0.01],
-                "hidden_channels": [64],
-                "aggr": ["mean"],
+                "hidden_channels": [64, 128],
+                "aggr": ["mean", "max"],
             },
             "TGB-Wiki": {
                 "lr": [0.01],
-                "hidden_channels": [32],
-                "aggr": ["max"],
+                "hidden_channels": [32, 64],
+                "aggr": ["mean", "max"],
             },
             "MOOC": {
                 "lr": [0.005],

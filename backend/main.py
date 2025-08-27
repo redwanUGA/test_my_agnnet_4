@@ -2,8 +2,14 @@ import argparse
 import gc
 import json
 import os
+import random
+import time
+from pathlib import Path
+
 import torch
 from torch_geometric.loader import NeighborLoader
+from torch_geometric.data import Data
+import numpy as np
 
 import data_loader
 import models
@@ -74,6 +80,10 @@ def parse_args():
         "--config", type=str, default=None, help="JSON file with hyperparameters")
     parser.add_argument(
         "--num-parts", type=int, default=4, help="Number of partitions to use on OOM fallback")
+    # Reproducibility and execution controls
+    parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
+    parser.add_argument("--deterministic", action="store_true", help="Enable deterministic torch/cuDNN (may be slower)")
+    parser.add_argument("--cpu-smoke", action="store_true", help="Run a 60-second CPU-only synthetic smoke test (ignores dataset)")
     # Metric/experiment mode
     parser.add_argument(
         "--ova-smote", action="store_true", help="Run One-vs-All experiments with per-class SMOTE and report average accuracy")
@@ -89,9 +99,98 @@ def main():
             cfg = json.load(f)
         for k, v in cfg.items():
             setattr(args, k, v)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Reproducibility setup
+    seed = getattr(args, 'seed', 42)
+    random.seed(seed)
+    try:
+        np.random.seed(seed)
+    except Exception:
+        pass
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        try:
+            torch.cuda.manual_seed_all(seed)
+        except Exception:
+            pass
+    if getattr(args, 'deterministic', False):
+        try:
+            torch.use_deterministic_algorithms(True)
+        except Exception:
+            pass
+        try:
+            os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
+        except Exception:
+            pass
+        if hasattr(torch.backends, 'cudnn'):
+            torch.backends.cudnn.deterministic = True
+            torch.backends.cudnn.benchmark = False
+
+    # Device selection (force CPU for smoke test)
+    device = torch.device("cpu" if getattr(args, 'cpu_smoke', False) else ("cuda" if torch.cuda.is_available() else "cpu"))
     print(f"Initial setup on device: {device}")
     print(f"Configuration: {args}")
+
+    # Save config snapshot
+    def _dump_config_snapshot(args_obj, tag="run"):
+        try:
+            repo_root = Path(__file__).resolve().parents[1]
+            cfg_dir = repo_root / "results" / "configs"
+            cfg_dir.mkdir(parents=True, exist_ok=True)
+            ts = time.strftime("%Y%m%d_%H%M%S")
+            path = cfg_dir / f"{tag}_{ts}.json"
+            with open(path, "w") as f:
+                json.dump(vars(args_obj), f, indent=2, default=str)
+            print(f"Saved config snapshot to {path}")
+            return str(path)
+        except Exception as e:
+            print(f"Failed to save config snapshot: {e}")
+            return None
+    _dump_config_snapshot(args, tag="args")
+
+    # Fast CPU-only smoke test on a synthetic tiny graph
+    if getattr(args, 'cpu_smoke', False):
+        print("\n[CPU-SMOKE] Running synthetic CPU-only smoke test...")
+        num_nodes = 200
+        feat_dim = 16
+        num_classes = 3
+        # Build a simple edge list (ring + random chords)
+        src = list(range(num_nodes))
+        dst = [(i+1) % num_nodes for i in range(num_nodes)]
+        import random as _r
+        for _ in range(200):
+            a = _r.randrange(0, num_nodes)
+            b = _r.randrange(0, num_nodes)
+            src.append(a); dst.append(b)
+        edge_index = torch.tensor([src, dst], dtype=torch.long)
+        x = torch.randn(num_nodes, feat_dim)
+        y = torch.randint(0, num_classes, (num_nodes,))
+        train_end = int(0.6 * num_nodes)
+        val_end = int(0.8 * num_nodes)
+        train_mask = torch.zeros(num_nodes, dtype=torch.bool); train_mask[:train_end] = True
+        val_mask = torch.zeros(num_nodes, dtype=torch.bool); val_mask[train_end:val_end] = True
+        test_mask = torch.zeros(num_nodes, dtype=torch.bool); test_mask[val_end:] = True
+        tiny = Data(x=x, edge_index=edge_index, y=y, train_mask=train_mask, val_mask=val_mask, test_mask=test_mask)
+
+        model_name = args.model.lower()
+        if model_name == "baselinegcn":
+            model = models.BaselineGCN(feat_dim, min(16, args.hidden_channels), num_classes, args.dropout)
+        elif model_name == "graphsage":
+            model = models.GraphSAGE(feat_dim, min(16, args.hidden_channels), num_classes, num_layers=2, dropout=args.dropout, aggr=args.aggr)
+        elif model_name == "gat":
+            model = models.GAT(feat_dim, min(16, args.hidden_channels), num_classes, heads=2, dropout=args.dropout)
+        else:
+            print("[CPU-SMOKE] Model not optimized for smoke test; defaulting to BaselineGCN.")
+            model = models.BaselineGCN(feat_dim, 16, num_classes, args.dropout)
+
+        tiny = tiny.to(device)
+        model = model.to(device)
+        prev_epochs = args.epochs
+        args.epochs = min(1, getattr(args, 'epochs', 1))
+        best_val, best_test, _ = train.run_training_session(model, tiny, None, None, None, is_sampled=False, device=device, args=args)
+        print(f"CPU_SMOKE_OK=1 VAL_ACC={best_val:.4f} TEST_ACC={best_test:.4f}")
+        # restore epochs for any outer caller
+        args.epochs = prev_epochs
+        return best_val
 
     # If OVA-SMOTE is requested, run the special experiment path and exit
     if getattr(args, 'ova_smote', False):

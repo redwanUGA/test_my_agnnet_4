@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: >
   If you use this code in your research, please cite the repository and the
   corresponding paper using the metadata below.
-title: "AquaGraph and AGN-Net: A Biologically Inspired Framework for Scalable and Adaptive Graph Neural Networks"
+title: "GNN Experiments"
 authors:
   - name: "AGN-Net Authors"
     affiliation: "Your Institution"

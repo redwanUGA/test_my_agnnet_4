@@ -78,6 +78,42 @@ Experiments (ready-to-run scripts)
 - experiments\run_param_scaling_ova.py – Orchestrates parameter-scaling OVA runs and writes a CSV.
 - experiments\run_param_scaling_ova.bat/.sh – Low-level runners invoked by the Python driver.
 
+SLURM (cluster) runners
+- experiments\slurm\all_experiments.sbatch – Submit hyperparameter search + train for all models/datasets.
+- experiments\slurm\agn_only.sbatch – Submit AGN-Net only experiments.
+- experiments\slurm\ova_experiments.sbatch – Submit OVA-SMOTE runs.
+- experiments\slurm\ablation_agnnet.sbatch – Submit AGN-Net ablations.
+- experiments\slurm\param_scaling_ova.sbatch – Submit parameter-scaling OVA runs.
+- experiments\submit_all_slurm.sh – Convenience helper to submit the full suite.
+
+
+## Running on SLURM (e.g., UGA GACRC)
+This repo includes SLURM batch scripts to reproduce the paper’s cluster runs.
+
+Basics
+- Submit jobs from the project root. Logs are written to results\logs\.
+- Edit experiments\slurm\*.sbatch to set your --partition/--account, GPU, time, and memory.
+- Ensure your environment is available on nodes (conda env name gnn-env used by default). You can change that in the scripts.
+
+Quick start
+- Submit all jobs:
+  - bash experiments/submit_all_slurm.sh
+  - Optional: override partition/account: PARTITION=a100 ACCOUNT=myacct bash experiments/submit_all_slurm.sh
+- Submit individually:
+  - sbatch experiments/slurm/all_experiments.sbatch
+  - sbatch experiments/slurm/agn_only.sbatch
+  - sbatch experiments/slurm/ova_experiments.sbatch
+  - sbatch experiments/slurm/ablation_agnnet.sbatch
+  - sbatch experiments/slurm/param_scaling_ova.sbatch
+
+Monitoring and outputs
+- squeue -u $USER to view running jobs.
+- Logs: results\logs\slurm-<jobname>-<jobid>.out and .err
+- Models/configs are saved under results\saved_models when using run_all_experiments.sh.
+
+Troubleshooting
+- If conda activate fails on compute nodes, replace the activation block with module load python/<ver> && pip install -r requirements.txt --user.
+- If PyG CUDA wheels mismatch your CUDA version, either use CPU fallbacks (slower) or install matching torch-scatter/torch-sparse wheels.
 
 ## Supported models and datasets
 - Models: BaselineGCN, GraphSAGE, GAT, TGAT, TGN, AGNNet
